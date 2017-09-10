@@ -1,0 +1,2 @@
+include versioneer.py
+include moonchart/_version.py
