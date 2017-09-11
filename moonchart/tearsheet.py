@@ -18,6 +18,7 @@ import math
 import pandas as pd
 from collections import OrderedDict
 import matplotlib.pyplot as plt
+from matplotlib import cycler
 from matplotlib.backends.backend_pdf import PdfPages
 
 class Tearsheet(object):
@@ -33,13 +34,13 @@ class Tearsheet(object):
         self.compound_returns = compound_returns
         plt.rc("legend", fontsize="xx-small")
         plt.rc("axes",
-               color_cycle= [
+               prop_cycle=cycler("color", [
                    "b", "g", "r", "c", "m", "y", "k",
                    "sienna", "chartreuse", "darkorange", "springgreen", "gray",
                    "powderblue", "cornflowerblue", "maroon", "indigo", "deeppink",
                    "salmon", "darkseagreen", "rosybrown", "slateblue", "darkgoldenrod",
                    "deepskyblue",
-               ])
+               ]))
         plt.rc("figure", autolayout=True)
         if pdf_filename:
             self.pdf = PdfPages(pdf_filename, keep_empty=True)
@@ -51,8 +52,10 @@ class Tearsheet(object):
         Saves the fig to the multi-page PDF, or shows it.
         """
         if self.pdf:
-            pdf.savefig()
+            for fignum in plt.get_fignums():
+                self.pdf.savefig(fignum)
             plt.close("all")
+            self.pdf.close()
         else:
             plt.show()
 
@@ -85,7 +88,7 @@ class Tearsheet(object):
         DataFrame.
         """
         return returns.fillna(0).rolling(window, min_periods=min_periods).apply(
-            self.sharpe, riskfree)
+            self.sharpe, kwargs=dict(riskfree=riskfree))
 
     def top_movers(self, returns, top_n=10):
         """
@@ -135,11 +138,14 @@ class Tearsheet(object):
         # Ignore nulls when compting CAGR
         cum_returns = cum_returns[cum_returns.notnull()]
 
+        if cum_returns.empty:
+            return 0
+
         # Compute the CAGR of the Series
         min_date = cum_returns.index.min()
         max_date = cum_returns.index.max()
         years = ((max_date - min_date).days or 1)/365.0
-        ending_value = cum_returns[-1]
+        ending_value = cum_returns.iloc[-1]
         # Since we are computing CAGR on cumulative returns, the beginning
         # value is always 1.
         beginning_value = 1
@@ -171,7 +177,7 @@ class Tearsheet(object):
         Computes the drawdowns of the cum_returns (a Series or DataFrame).
         """
         cum_returns = cum_returns[cum_returns.notnull()]
-        highwater_marks = pd.expanding_max(cum_returns)
+        highwater_marks = cum_returns.expanding().max()
         drawdowns = cum_returns/highwater_marks - 1
         return drawdowns
 
@@ -181,10 +187,13 @@ class Tearsheet(object):
         """
         return drawdowns.min()
 
-    def create_tearsheet_from_moonshot_backtest_results(self, results, **kwargs):
+    def create_tearsheet_from_moonshot_backtest_csv(self, filepath_or_buffer, **kwargs):
         """
         Creates a tear sheet from moonshot backtest results.
         """
+        results = pd.read_csv(filepath_or_buffer,
+                              parse_dates=["Date"],
+                              index_col=["Field","Date"])
         fields = results.index.get_level_values("Field").unique()
         _kwargs = {}
         _kwargs["returns"] = results.loc["Return"]
@@ -267,6 +276,13 @@ class Tearsheet(object):
             raise ValueError(
                 "Must provide all of order_exposures, net_exposures, and abs_exposures, or none")
 
+        if not title:
+            min_date = returns.index.min().date().isoformat()
+            max_date = returns.index.max().date().isoformat()
+            cols = list(returns.columns)
+            title = "{0} - {1}: {2}".format(
+                min_date, max_date, ", ".join(cols))
+
         if aggregate:
             aggregate_returns = returns.sum(axis=1)
             if pnl is not None:
@@ -303,7 +319,8 @@ class Tearsheet(object):
                        benchmark=benchmark)
 
         if montecarlo_n:
-            self.montecarlo_simulate(returns, n=montecarlo_n, preaggregate=montecarlo_preaggregate)
+            self.montecarlo_simulate(
+                returns, n=montecarlo_n, preaggregate=montecarlo_preaggregate, title=title)
 
         self._save_or_show()
 
@@ -314,6 +331,8 @@ class Tearsheet(object):
         """
         Computes and plots performance statistics.
         """
+        title = title or "Performance Results"
+
         rolling_sharpe_window = 200
 
         agg_stats = OrderedDict()
@@ -340,7 +359,9 @@ class Tearsheet(object):
 
         if show_summaries and isinstance(cagr, pd.Series):
             if pnl is not None:
-                fig = plt.figure("PNL {0}".format(extra_label), figsize=self.WINDOW_SIZE)
+                fig = plt.figure("PNL {0}".format(extra_label), figsize=self.WINDOW_SIZE,
+                                 tight_layout=self._tight_layout_clear_suptitle)
+                fig.suptitle(title)
                 axis = fig.add_subplot(111)
                 pnl = pnl.sum().sort_values(inplace=False)
                 if commissions is not None:
@@ -352,15 +373,21 @@ class Tearsheet(object):
                     pnl = pd.concat((pnl, gross_pnl, commissions), axis=1)
                 pnl.plot(
                     ax=axis, kind="bar", title="PNL {0}".format(extra_label))
-            fig = plt.figure("CAGR {0}".format(extra_label), figsize=self.WINDOW_SIZE)
+            fig = plt.figure("CAGR {0}".format(extra_label), figsize=self.WINDOW_SIZE,
+                             tight_layout=self._tight_layout_clear_suptitle)
+            fig.suptitle(title)
             axis = fig.add_subplot(111)
             cagr.sort_values(inplace=False).plot(
                 ax=axis, kind="bar", title="CAGR {0}".format(extra_label))
-            fig = plt.figure("Sharpe {0}".format(extra_label), figsize=self.WINDOW_SIZE)
+            fig = plt.figure("Sharpe {0}".format(extra_label), figsize=self.WINDOW_SIZE,
+                             tight_layout=self._tight_layout_clear_suptitle)
+            fig.suptitle(title)
             axis = fig.add_subplot(111)
             sharpe.sort_values(inplace=False).plot(
                 ax=axis, kind="bar", title="Sharpe {0}".format(extra_label))
-            fig = plt.figure("Max Drawdown {0}".format(extra_label), figsize=self.WINDOW_SIZE)
+            fig = plt.figure("Max Drawdown {0}".format(extra_label), figsize=self.WINDOW_SIZE,
+                             tight_layout=self._tight_layout_clear_suptitle)
+            fig.suptitle(title)
             axis = fig.add_subplot(111)
             max_drawdown.sort_values(inplace=False).plot(
                 ax=axis, kind="bar", title="Max drawdown {0}".format(extra_label))
@@ -368,7 +395,9 @@ class Tearsheet(object):
                 avg_order_exposures = self.avg_exposure(order_exposures)
                 avg_net_exposures = self.avg_exposure(net_exposures)
                 avg_abs_exposures = self.avg_exposure(abs_exposures)
-                fig = plt.figure("Avg Exposure {0}".format(extra_label), figsize=self.WINDOW_SIZE)
+                fig = plt.figure("Avg Exposure {0}".format(extra_label), figsize=self.WINDOW_SIZE,
+                                 tight_layout=self._tight_layout_clear_suptitle)
+                fig.suptitle(title)
                 axis = fig.add_subplot(2,2,1)
                 avg_order_exposures.sort_values(inplace=False).plot(
                     ax=axis, kind="bar", title="Avg Order Exposure {0}".format(extra_label))
@@ -379,16 +408,20 @@ class Tearsheet(object):
                 avg_net_exposures.sort_values(inplace=False).plot(
                     ax=axis, kind="bar", title="Avg Net Exposure {0}".format(extra_label))
                 efficiencies = self.efficiency(cagr, avg_abs_exposures)
-                fig = plt.figure("CAGR per Exposure {0}".format(extra_label), figsize=self.WINDOW_SIZE)
+                fig = plt.figure("Efficiency (CAGR/Exposure) {0}".format(extra_label), figsize=self.WINDOW_SIZE,
+                                 tight_layout=self._tight_layout_clear_suptitle)
+                fig.suptitle(title)
                 axis = fig.add_subplot(111)
                 efficiencies.sort_values(inplace=False).plot(
-                    ax=axis, kind="bar", title="CAGR per Exposure {0}".format(extra_label))
+                    ax=axis, kind="bar", title="Efficiency (CAGR/Exposure) {0}".format(extra_label))
             if show_mean:
-                title = "{0}ean return {1}".format(
+                _title = "{0}ean return {1}".format(
                     "Normalized m" if abs_exposures is not None else "M", extra_label)
-                fig = plt.figure(title, figsize=self.WINDOW_SIZE)
+                fig = plt.figure(_title, figsize=self.WINDOW_SIZE,
+                                 tight_layout=self._tight_layout_clear_suptitle)
+                fig.suptitle(title)
                 axis = fig.add_subplot(111)
-                mean_returns.sort_values(inplace=False).plot(ax=axis, kind="bar", title=title)
+                mean_returns.sort_values(inplace=False).plot(ax=axis, kind="bar", title=_title)
 
         elif show_summaries:
             if pnl is not None:
@@ -399,7 +432,7 @@ class Tearsheet(object):
             agg_stats["Sharpe"] = sharpe
             if rolling_sharpe.notnull().any():
                 agg_stats["Rolling Sharpe Std Dev"] = rolling_sharpe.std()
-            agg_stats["Max drawdown"] = max_drawdown
+            agg_stats["Max Drawdown"] = max_drawdown
             if show_exposures and order_exposures is not None and net_exposures is not None and abs_exposures is not None:
                 avg_order_exposures = self.avg_exposure(order_exposures)
                 avg_net_exposures = self.avg_exposure(net_exposures)
@@ -408,14 +441,15 @@ class Tearsheet(object):
                 agg_stats["Avg Order Exposure"] = round(avg_order_exposures, 3)
                 agg_stats["Avg Net Exposure"] = round(avg_net_exposures, 3)
                 agg_stats["Avg Absolute Exposure"] = round(avg_abs_exposures, 3)
-                agg_stats["CAGR per Exposure"] = round(efficiency, 3)
+                agg_stats["Efficiency (CAGR/Exposure)"] = round(efficiency, 3)
 
             if show_mean:
                 agg_stats["{0}ean return".format(
                     "Normalized m" if abs_exposures is not None else "M")] = mean_returns
 
             agg_stats_text = self._get_agg_stats_text(agg_stats)
-            fig = plt.figure("Aggregate Performance")
+            fig = plt.figure("Aggregate Performance", figsize=self.WINDOW_SIZE)
+            fig.suptitle(title)
             fig.text(.3, .3, agg_stats_text, bbox=dict(color="gray",alpha=0.25), family="monospace")
 
             if pnl is not None and commissions is not None:
@@ -426,7 +460,9 @@ class Tearsheet(object):
                 cum_gross_pnl = cum_pnl + cum_commissions.abs()
                 cum_gross_pnl.name = "gross pnl"
                 pnl_breakdown = pd.concat((cum_pnl, cum_gross_pnl, cum_commissions), axis=1)
-                fig = plt.figure("Gross and Net PNL", figsize=self.WINDOW_SIZE)
+                fig = plt.figure("Gross and Net PNL", figsize=self.WINDOW_SIZE,
+                                 tight_layout=self._tight_layout_clear_suptitle)
+                fig.suptitle(title)
                 axis = fig.add_subplot(111)
                 pnl_breakdown.plot(ax=axis, title="Gross and Net PNL {0}".format(extra_label))
 
@@ -436,11 +472,13 @@ class Tearsheet(object):
                 self.cum_returns(x)))
             sharpes_by_year = grouped_returns.apply(self.sharpe)
             fig = plt.figure("CAGR by Year", figsize=self.WINDOW_SIZE)
+            fig.suptitle(title)
             axis = fig.add_subplot(subplot)
             plot = cagrs_by_year.plot(ax=axis, kind="bar", title="CAGR by Year {0}".format(extra_label))
             if isinstance(cagrs_by_year, pd.DataFrame):
                 self._clear_legend(plot)
             fig = plt.figure("Sharpe by Year", figsize=self.WINDOW_SIZE)
+            fig.suptitle(title)
             axis = fig.add_subplot(subplot)
             plot = sharpes_by_year.plot(ax=axis, kind="bar", title="Sharpe by Year {0}".format(extra_label))
             if isinstance(sharpes_by_year, pd.DataFrame):
@@ -451,6 +489,7 @@ class Tearsheet(object):
                 self.cum_returns(x)))
             sharpes_by_month = grouped_returns.apply(self.sharpe)
             fig = plt.figure("Performance by Month", figsize=self.WINDOW_SIZE)
+            fig.suptitle(title)
             axis = fig.add_subplot(211)
             plot = cagrs_by_month.plot(ax=axis, kind="bar", title="CAGR by Month {0}".format(extra_label))
             if isinstance(cagrs_by_month, pd.DataFrame):
@@ -461,10 +500,11 @@ class Tearsheet(object):
                 self._clear_legend(plot)
 
         fig = plt.figure("Cumulative Returns", figsize=self.WINDOW_SIZE)
-        if title:
-            fig.suptitle(title)
+        fig.suptitle(title)
         axis = fig.add_subplot(subplot)
-        max_return = cum_returns.max(axis=1).max(axis=0)
+        max_return = cum_returns.max(axis=0)
+        if isinstance(max_return, pd.Series):
+            max_return = max_return.max(axis=0)
         # If the price more than doubled, use a log scale
         if max_return >= 2:
             axis.set_yscale("log", basey=2)
@@ -499,8 +539,7 @@ class Tearsheet(object):
             # causes other than the strategies being charted (e.g. other
             # strategies, contributions/withdrawals, etc.)
             fig = plt.figure("Cumulative PNL", figsize=self.WINDOW_SIZE)
-            if title:
-                fig.suptitle(title)
+            fig.suptitle(title)
             axis = fig.add_subplot(subplot)
             plot = cum_pnl.plot(ax=axis, title="Cumulative PNL{0}".format(extra_label))
             if isinstance(cum_pnl, pd.DataFrame):
@@ -508,38 +547,33 @@ class Tearsheet(object):
 
         if show_exposures and order_exposures is not None and net_exposures is not None and abs_exposures is not None:
             fig = plt.figure("Order Exposures", figsize=self.WINDOW_SIZE)
-            if title:
-                fig.suptitle(title)
+            fig.suptitle(title)
             axis = fig.add_subplot(subplot)
             plot = order_exposures.plot(ax=axis, title="Order Exposures {0}".format(extra_label))
             if isinstance(order_exposures, pd.DataFrame):
                 self._clear_legend(plot)
             fig = plt.figure("Net Exposures", figsize=self.WINDOW_SIZE)
-            if title:
-                fig.suptitle(title)
+            fig.suptitle(title)
             axis = fig.add_subplot(subplot)
             plot = net_exposures.plot(ax=axis, title="Net Exposures {0}".format(extra_label))
             if isinstance(net_exposures, pd.DataFrame):
                 self._clear_legend(plot)
             fig = plt.figure("Absolute Exposures", figsize=self.WINDOW_SIZE)
-            if title:
-                fig.suptitle(title)
+            fig.suptitle(title)
             axis = fig.add_subplot(subplot)
             plot = abs_exposures.plot(ax=axis, title="Absolute Exposures {0}".format(extra_label))
             if isinstance(abs_exposures, pd.DataFrame):
                 self._clear_legend(plot)
 
         fig = plt.figure("Drawdowns", figsize=self.WINDOW_SIZE)
-        if title:
-            fig.suptitle(title)
+        fig.suptitle(title)
         axis = fig.add_subplot(subplot)
         plot = drawdowns.plot(ax=axis, title="Drawdowns {0}".format(extra_label))
         if isinstance(drawdowns, pd.DataFrame):
             self._clear_legend(plot)
         if len(rolling_sharpe.index) > rolling_sharpe_window:
             fig = plt.figure("Rolling Sharpe", figsize=self.WINDOW_SIZE)
-            if title:
-                fig.suptitle(title)
+            fig.suptitle(title)
             axis = fig.add_subplot(subplot)
             plot = rolling_sharpe.plot(ax=axis, title="Rolling Sharpe ({0}-day) {1}".format(
                 rolling_sharpe_window, extra_label))
@@ -574,6 +608,9 @@ class Tearsheet(object):
         returns. DataFrames should include a column for each strategy being
         analyzed.
         """
+        # TODO: be more specific
+        title = "Shortfall Analysis"
+
         strategies = live_returns.columns.union(simulated_returns.columns)
         strategy_count = len(strategies)
 
@@ -593,14 +630,17 @@ class Tearsheet(object):
             shortfall = cum_returns.live - cum_returns.simulated
 
             fig = plt.figure("Cumulative Returns", figsize=self.WINDOW_SIZE)
+            fig.suptitle(title)
             axis = fig.add_subplot(rows, cols, i+1)
             cum_returns.plot(ax=axis, title=strategy)
 
             fig = plt.figure("Drawdowns", figsize=self.WINDOW_SIZE)
+            fig.suptitle(title)
             axis = fig.add_subplot(rows, cols, i+1)
             drawdowns.plot(ax=axis, title=strategy)
 
             fig = plt.figure("Shortfall", figsize=self.WINDOW_SIZE)
+            fig.suptitle(title)
             axis = fig.add_subplot(rows, cols, i+1)
             shortfall.plot(ax=axis, title=strategy, kind="area", stacked=False)
 
@@ -624,6 +664,11 @@ class Tearsheet(object):
 
         self._save_or_show()
 
+    @property
+    def _tight_layout_clear_suptitle(self):
+        # leave room at top for suptitle
+        return dict(rect=[0,0,1,.9])
+
     def _clear_legend(self, plot):
         """
         Anchors the legend to the outside right of the plot area so you can
@@ -633,7 +678,7 @@ class Tearsheet(object):
         plot.legend(
             loc='center left', bbox_to_anchor=(1, 0.5), fontsize="x-small")
 
-    def montecarlo_simulate(self, returns, n=5, preaggregate=True):
+    def montecarlo_simulate(self, returns, n=5, preaggregate=True, title=None):
         """
         Runs a Montecarlo simulation by shuffling the dataframe of returns n
         number of times and graphing the cum_returns and drawdowns overlaid
@@ -662,10 +707,13 @@ class Tearsheet(object):
 
         cum_sim_returns = self.cum_returns(self._with_baseline(sim_returns))
         cum_returns = self.cum_returns(self._with_baseline(returns))
-        fig = plt.figure("Montecarlo Simulation", figsize=self.WINDOW_SIZE)
+        fig = plt.figure("Montecarlo Simulation", figsize=self.WINDOW_SIZE,
+                         tight_layout=self._tight_layout_clear_suptitle)
+        if title:
+            fig.suptitle(title)
         axis = fig.add_subplot(211)
-        cum_sim_returns.plot(ax=axis, title="Cumulative Returns", legend=False)
+        cum_sim_returns.plot(ax=axis, title="Montecarlo Cumulative Returns (n={0})".format(n), legend=False)
         cum_returns.plot(ax=axis, linewidth=4, color="black")
         axis = fig.add_subplot(212)
-        self.drawdowns(cum_sim_returns).plot(ax=axis, title="Drawdowns", legend=False)
+        self.drawdowns(cum_sim_returns).plot(ax=axis, title="Montecarlo Drawdowns (n={0})".format(n), legend=False)
         self.drawdowns(cum_returns).plot(ax=axis, linewidth=4, color="black")
