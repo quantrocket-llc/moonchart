@@ -460,9 +460,13 @@ class Tearsheet(object):
         if max_return >= 2:
             axis.set_yscale("log", basey=2)
 
-        # a 212 subplot means a detailed plot, which isn't compatible with
-        # showing commissions
-        if performance.commissions_pct is not None and subplot != 212:
+        if (
+            performance.commissions_pct is not None
+            # a 212 subplot means a detailed plot, which isn't compatible with
+            # showing commissions
+            and subplot != 212
+            # if all commissions are null/0, don't show them
+            and (performance.commissions_pct.fillna(0) != 0).any()):
             commissions_pct = performance.with_baseline(performance.commissions_pct)
             cum_commissions_pct = performance.get_cum_returns(commissions_pct)
             cum_commissions_pct.name = "commissions"
@@ -561,7 +565,7 @@ class Tearsheet(object):
         agg_stats_text = self._get_agg_stats_text(agg_stats)
         fig = plt.figure("Aggregate Performance", figsize=self.window_size)
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
-        fig.text(.3, .4, agg_stats_text,
+        fig.text(.3, .45, agg_stats_text,
                  bbox=dict(facecolor="#e1e1e6", edgecolor='#aaaaaa', alpha=0.5),
                  family="monospace",
                  fontsize="xx-large"
