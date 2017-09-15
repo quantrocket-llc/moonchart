@@ -99,15 +99,15 @@ class Performance(object):
         """
         fields = results.index.get_level_values("Field").unique()
         kwargs = {}
-        kwargs["returns"] = results.loc["Return"]
+        kwargs["returns"] = results.loc["Return"].astype(np.float64)
         if "NetExposure" in fields:
-            kwargs["net_exposures"] = results.loc["NetExposure"]
+            kwargs["net_exposures"] = results.loc["NetExposure"].astype(np.float64)
         if "AbsExposure" in fields:
-            kwargs["abs_exposures"] = results.loc["AbsExposure"]
+            kwargs["abs_exposures"] = results.loc["AbsExposure"].astype(np.float64)
         if "Commission" in fields:
-            kwargs["commissions_pct"] = results.loc["Commission"]
+            kwargs["commissions_pct"] = results.loc["Commission"].astype(np.float64)
         if "Benchmark" in fields:
-            kwargs["benchmark"] = results.loc["Benchmark"]
+            kwargs["benchmark"] = results.loc["Benchmark"].astype(np.float64)
 
         return cls(**kwargs)
 
