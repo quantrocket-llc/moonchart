@@ -231,6 +231,27 @@ class Performance(object):
         """
         return drawdowns.min()
 
+    def get_benchmark_returns(self):
+        """
+        Returns a Series of benchmark prices, if any. If more than one strategy/column has
+        benchmark prices, returns the first.
+        """
+        if self.benchmark is None:
+            return None
+        have_benchmarks = self.benchmark.notnull().any(axis=0)
+        have_benchmarks = have_benchmarks[have_benchmarks]
+        if have_benchmarks.empty:
+            return None
+
+        col = have_benchmarks.index[0]
+        if len(have_benchmarks.index) > 1:
+            import warnings
+            warnings.warn("Multiple benchmarks found, only using first ({0})".format(col))
+
+        benchmark_prices = self.benchmark[col]
+        benchmark_prices.name = "benchmark"
+        return benchmark_prices.pct_change()
+
     def get_top_movers(self, returns, top_n=10):
         """
         Returns the biggest gainers and losers in the returns.
@@ -251,7 +272,8 @@ class AggregatePerformance(Performance):
             performance.returns.sum(axis=1),
             riskfree=performance.riskfree,
             compound_returns=performance.compound_returns,
-            rolling_sharpe_window=performance.rolling_sharpe_window
+            rolling_sharpe_window=performance.rolling_sharpe_window,
+            benchmark=performance.benchmark
         )
         if performance.pnl is not None:
             self.pnl = performance.pnl.sum(axis=1)
@@ -509,6 +531,26 @@ class Tearsheet(object):
             plot = performance.rolling_sharpe.plot(ax=axis, title="Rolling Sharpe ({0}-day) {1}".format(
                 performance.rolling_sharpe_window, extra_label))
             if isinstance(performance.rolling_sharpe, pd.DataFrame):
+                self._clear_legend(plot)
+
+        benchmark_returns = performance.get_benchmark_returns()
+        if benchmark_returns is not None:
+            fig = plt.figure("Cumulative Returns vs Benchmark", figsize=self.window_size, tight_layout=tight_layout)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+            axis = fig.add_subplot(subplot)
+            max_return = performance.cum_returns.max(axis=0)
+            if isinstance(max_return, pd.Series):
+                max_return = max_return.max(axis=0)
+            # If the price more than doubled, use a log scale
+            if max_return >= 2:
+                axis.set_yscale("log", basey=2)
+
+            if isinstance(performance.cum_returns_with_baseline, pd.Series):
+                performance.cum_returns_with_baseline.name = "strategy"
+            benchmark_cum_returns = performance.get_cum_returns(performance.with_baseline(benchmark_returns))
+            vs_benchmark = pd.concat((performance.cum_returns_with_baseline, benchmark_cum_returns), axis=1)
+            plot = vs_benchmark.plot(ax=axis, title="Cumulative Returns vs Benchmark {0}".format(extra_label))
+            if isinstance(vs_benchmark, pd.DataFrame):
                 self._clear_legend(plot)
 
     def _create_detailed_performance_bar_charts(self, performance, extra_label):
