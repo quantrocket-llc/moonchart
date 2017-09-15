@@ -209,7 +209,7 @@ class Performance(object):
         """
         return exposures.mean()
 
-    def get_efficiency(self, cagr, exposure):
+    def get_normalized_cagr(self, cagr, exposure):
         """
         Returns the CAGR per 1x exposure, a measure of the strategy's
         efficiency.
@@ -295,7 +295,9 @@ class Tearsheet(object):
         else:
             self.pdf = None
 
-        self.title = "Performance tear sheet"
+        self.suptitle = "Performance tear sheet"
+        self.suptitle_kwargs = {
+            "bbox": dict(facecolor="#e1e1e6", edgecolor='#aaaaaa', alpha=0.5)}
 
     def _save_or_show(self):
         """
@@ -309,15 +311,18 @@ class Tearsheet(object):
         else:
             plt.show()
 
-    def set_title_from_performance(self, performance):
+    def _set_title_from_performance(self, performance):
         """
-        Sets a title like "<start date> - <end date>: <securities/strategies/columns>
+        Sets a title like "<start date> - <end date>: <securities/strategies/columns>"
         """
         min_date = performance.returns.index.min().date().isoformat()
         max_date = performance.returns.index.max().date().isoformat()
         cols = list(performance.returns.columns)
-        self.title = "{0} - {1}: {2}".format(
-            min_date, max_date, ", ".join(cols))
+        cols = ", ".join([str(col) for col in cols])
+        if len(cols) > 70:
+            cols = cols[:70] + "..."
+        self.suptitle = "{0} - {1}: {2}".format(
+            min_date, max_date, cols)
 
     def from_moonshot(self, results, **kwargs):
         """
@@ -388,9 +393,9 @@ class Tearsheet(object):
         None
         """
         if title:
-            self.title = title
+            self.suptitle = title
         else:
-            self.set_title_from_performance(performance)
+            self._set_title_from_performance(performance)
 
         agg_performance = AggregatePerformance(performance)
 
@@ -446,7 +451,7 @@ class Tearsheet(object):
             tight_layout = None
 
         fig = plt.figure("Cumulative Returns", figsize=self.window_size, tight_layout=tight_layout)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(subplot)
         max_return = performance.cum_returns.max(axis=0)
         if isinstance(max_return, pd.Series):
@@ -474,7 +479,7 @@ class Tearsheet(object):
                 self._clear_legend(plot)
 
         fig = plt.figure("Drawdowns", figsize=self.window_size, tight_layout=tight_layout)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(subplot)
         plot = performance.drawdowns.plot(ax=axis, title="Drawdowns {0}".format(extra_label))
         if isinstance(performance.drawdowns, pd.DataFrame):
@@ -487,7 +492,7 @@ class Tearsheet(object):
             # causes other than the strategies being charted (e.g. other
             # strategies, contributions/withdrawals, etc.)
             fig = plt.figure("Cumulative PNL", figsize=self.window_size, tight_layout=tight_layout)
-            fig.suptitle(self.title)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
             plot = performance.cum_pnl.plot(ax=axis, title="Cumulative PNL{0}".format(extra_label))
             if isinstance(performance.cum_pnl, pd.DataFrame):
@@ -495,7 +500,7 @@ class Tearsheet(object):
 
         if len(performance.rolling_sharpe.index) > performance.rolling_sharpe_window:
             fig = plt.figure("Rolling Sharpe", figsize=self.window_size, tight_layout=tight_layout)
-            fig.suptitle(self.title)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
             plot = performance.rolling_sharpe.plot(ax=axis, title="Rolling Sharpe ({0}-day) {1}".format(
                 performance.rolling_sharpe_window, extra_label))
@@ -506,7 +511,7 @@ class Tearsheet(object):
         if performance.pnl is not None:
             fig = plt.figure("PNL {0}".format(extra_label), figsize=self.window_size,
                              tight_layout=self._tight_layout_clear_suptitle)
-            fig.suptitle(self.title)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(111)
             pnl = performance.pnl.sum().sort_values(inplace=False)
             if performance.commissions is not None:
@@ -521,21 +526,21 @@ class Tearsheet(object):
 
         fig = plt.figure("CAGR {0}".format(extra_label), figsize=self.window_size,
                          tight_layout=self._tight_layout_clear_suptitle)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(111)
         performance.cagr.sort_values(inplace=False).plot(
             ax=axis, kind="bar", title="CAGR {0}".format(extra_label))
 
         fig = plt.figure("Sharpe {0}".format(extra_label), figsize=self.window_size,
                          tight_layout=self._tight_layout_clear_suptitle)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(111)
         performance.sharpe.sort_values(inplace=False).plot(
             ax=axis, kind="bar", title="Sharpe {0}".format(extra_label))
 
         fig = plt.figure("Max Drawdown {0}".format(extra_label), figsize=self.window_size,
                          tight_layout=self._tight_layout_clear_suptitle)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(111)
         performance.max_drawdown.sort_values(inplace=False).plot(
             ax=axis, kind="bar", title="Max drawdown {0}".format(extra_label))
@@ -555,9 +560,9 @@ class Tearsheet(object):
 
         agg_stats_text = self._get_agg_stats_text(agg_stats)
         fig = plt.figure("Aggregate Performance", figsize=self.window_size)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         fig.text(.3, .4, agg_stats_text,
-                 bbox=dict(color="gray",alpha=0.25),
+                 bbox=dict(facecolor="#e1e1e6", edgecolor='#aaaaaa', alpha=0.5),
                  family="monospace",
                  fontsize="xx-large"
                  )
@@ -572,7 +577,7 @@ class Tearsheet(object):
         pnl_breakdown = pd.concat((cum_pnl, cum_gross_pnl, cum_commissions), axis=1)
         fig = plt.figure("Gross and Net PNL", figsize=self.window_size,
                          tight_layout=self._tight_layout_clear_suptitle)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(111)
         pnl_breakdown.plot(ax=axis, title="Gross and Net PNL {0}".format(extra_label))
 
@@ -608,15 +613,15 @@ class Tearsheet(object):
 
         if agg_performance.abs_exposures is not None:
             avg_abs_exposures = agg_performance.get_avg_exposure(agg_performance.abs_exposures)
-            efficiency = agg_performance.get_efficiency(agg_performance.cagr, avg_abs_exposures)
+            norm_cagr = agg_performance.get_normalized_cagr(agg_performance.cagr, avg_abs_exposures)
             agg_stats["Avg Absolute Exposure"] = round(avg_abs_exposures, 3)
-            agg_stats["Efficiency (CAGR/Exposure)"] = round(efficiency, 3)
+            agg_stats["Normalized CAGR (CAGR/Exposure)"] = round(norm_cagr, 3)
 
         agg_stats_text = self._get_agg_stats_text(agg_stats, title="Aggregate Exposure")
         fig = plt.figure("Aggregate Exposure", figsize=self.window_size)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         fig.text(.3, .4, agg_stats_text,
-                 bbox=dict(color="gray",alpha=0.25),
+                 bbox=dict(facecolor="#e1e1e6", edgecolor='#aaaaaa', alpha=0.5),
                  family="monospace",
                  fontsize="xx-large")
 
@@ -628,7 +633,7 @@ class Tearsheet(object):
 
         if performance.net_exposures is not None:
             fig = plt.figure("Net Exposures", figsize=self.window_size, tight_layout=tight_layout)
-            fig.suptitle(self.title)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
             plot = performance.net_exposures.plot(ax=axis, title="Net Exposures {0}".format(extra_label))
             if isinstance(performance.net_exposures, pd.DataFrame):
@@ -636,7 +641,7 @@ class Tearsheet(object):
 
         if performance.abs_exposures is not None:
             fig = plt.figure("Absolute Exposures", figsize=self.window_size, tight_layout=tight_layout)
-            fig.suptitle(self.title)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
             plot = performance.abs_exposures.plot(ax=axis, title="Absolute Exposures {0}".format(extra_label))
             if isinstance(performance.abs_exposures, pd.DataFrame):
@@ -644,30 +649,32 @@ class Tearsheet(object):
 
     def _create_detailed_exposures_bar_charts(self, performance, extra_label):
 
-        fig = plt.figure("Avg Exposure {0}".format(extra_label), figsize=self.window_size,
-                         tight_layout=self._tight_layout_clear_suptitle)
-        fig.suptitle(self.title)
-
         if performance.abs_exposures is not None:
+            fig = plt.figure("Avg Absolute Exposure {0}".format(extra_label), figsize=self.window_size,
+                             tight_layout=self._tight_layout_clear_suptitle)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             avg_abs_exposures = performance.get_avg_exposure(performance.abs_exposures)
-            axis = fig.add_subplot(2,2,2)
+            axis = fig.add_subplot(111)
             avg_abs_exposures.sort_values(inplace=False).plot(
                 ax=axis, kind="bar", title="Avg Absolute Exposure {0}".format(extra_label))
 
         if performance.net_exposures is not None:
+            fig = plt.figure("Avg Net Exposure {0}".format(extra_label), figsize=self.window_size,
+                             tight_layout=self._tight_layout_clear_suptitle)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             avg_net_exposures = performance.get_avg_exposure(performance.net_exposures)
-            axis = fig.add_subplot(2,2,3)
+            axis = fig.add_subplot(111)
             avg_net_exposures.sort_values(inplace=False).plot(
             ax=axis, kind="bar", title="Avg Net Exposure {0}".format(extra_label))
 
         if performance.abs_exposures is not None:
-            efficiencies = performance.get_efficiency(performance.cagr, avg_abs_exposures)
-            fig = plt.figure("Efficiency (CAGR/Exposure) {0}".format(extra_label), figsize=self.window_size,
+            norm_cagrs = performance.get_normalized_cagr(performance.cagr, avg_abs_exposures)
+            fig = plt.figure("Normalized CAGR (CAGR/Exposure) {0}".format(extra_label), figsize=self.window_size,
                              tight_layout=self._tight_layout_clear_suptitle)
-            fig.suptitle(self.title)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(111)
-            efficiencies.sort_values(inplace=False).plot(
-                ax=axis, kind="bar", title="Efficiency (CAGR/Exposure) {0}".format(extra_label))
+            norm_cagrs.sort_values(inplace=False).plot(
+                ax=axis, kind="bar", title="Normalized CAGR (CAGR/Exposure) {0}".format(extra_label))
 
     def create_annual_breakdown_tearsheet(self, performance, agg_performance):
         """
@@ -699,14 +706,14 @@ class Tearsheet(object):
         sharpes_by_year = grouped_returns.apply(performance.get_sharpe)
 
         fig = plt.figure("CAGR by Year", figsize=self.window_size, tight_layout=tight_layout)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(subplot)
         plot = cagrs_by_year.plot(ax=axis, kind="bar", title="CAGR by Year {0}".format(extra_label))
         if isinstance(cagrs_by_year, pd.DataFrame):
             self._clear_legend(plot)
 
         fig = plt.figure("Sharpe by Year", figsize=self.window_size, tight_layout=tight_layout)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(subplot)
         plot = sharpes_by_year.plot(ax=axis, kind="bar", title="Sharpe by Year {0}".format(extra_label))
         if isinstance(sharpes_by_year, pd.DataFrame):
@@ -743,7 +750,7 @@ class Tearsheet(object):
         raise NotImplementedError()
 
         # TODO: be more specific
-        self.title = "Shortfall Analysis"
+        self.suptitle = "Shortfall Analysis"
 
         strategies = live_returns.columns.union(simulated_returns.columns)
         strategy_count = len(strategies)
@@ -764,17 +771,17 @@ class Tearsheet(object):
             shortfall = cum_returns.live - cum_returns.simulated
 
             fig = plt.figure("Cumulative Returns", figsize=self.window_size)
-            fig.suptitle(self.title)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(rows, cols, i+1)
             cum_returns.plot(ax=axis, title=strategy)
 
             fig = plt.figure("Drawdowns", figsize=self.window_size)
-            fig.suptitle(self.title)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(rows, cols, i+1)
             drawdowns.plot(ax=axis, title=strategy)
 
             fig = plt.figure("Shortfall", figsize=self.window_size)
-            fig.suptitle(self.title)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(rows, cols, i+1)
             shortfall.plot(ax=axis, title=strategy, kind="area", stacked=False)
 
@@ -789,9 +796,9 @@ class Tearsheet(object):
         rows, cols = self._get_plot_dimensions(len(series))
         fig = plt.figure(figsize=self.window_size)
         if title:
-            self.title = title
+            self.suptitle = title
 
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         for i, series in enumerate(series_list):
             axis = fig.add_subplot(rows, cols, i + 1)
             plot = series.plot(ax=axis, kind=kind, title=series.name, fontsize="small")
@@ -847,7 +854,7 @@ class Tearsheet(object):
         cum_returns = performance.get_cum_returns(performance.with_baseline(returns))
         fig = plt.figure("Montecarlo Simulation", figsize=self.window_size,
                          tight_layout=self._tight_layout_clear_suptitle)
-        fig.suptitle(self.title)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(211)
         cum_sim_returns.plot(ax=axis, title="Montecarlo Cumulative Returns (n={0})".format(n), legend=False)
         cum_returns.plot(ax=axis, linewidth=4, color="black")
