@@ -26,35 +26,35 @@ class Performance(object):
 
     Parameters
     ----------
-    returns
+    returns : DataFrame, required
         a Dataframe of pct returns
 
-    pnl
+    pnl : DataFrame, optional
         a DataFrame of pnl
 
-    net_exposures
+    net_exposures : DataFrame, optional
         a Dataframe of net (hedged) exposure
 
-    abs_exposures
+    abs_exposures : DataFrame, optional
         a Dataframe of absolute exposure (ignoring hedging)
 
-    commissions
+    commissions : DataFrame, optional
         a DataFrame of commissions, in the base currency
 
-    commissions_pct
+    commissions_pct : DataFrame, optional
         a DataFrame of commissions, in percentages
 
-    benchmark
+    benchmark : Series, optional
         a Series of prices for a benchmark
 
-    riskfree
-        the riskfree rate, as a scalar value.
+    riskfree : float, optional
+        the riskfree rate (default 0)
 
-    compound_returns
+    compound_returns : bool
          True for compound/geometric returns, False for arithmetic returns (default True)
 
-    rolling_sharpe_window
-        default 200
+    rolling_sharpe_window : int, optional
+        compute rolling Sharpe over this many periods (default 200)
     """
 
     def __init__(
@@ -93,13 +93,10 @@ class Performance(object):
         self._performance_cache_filled = False
 
     @classmethod
-    def from_moonshot_backtest(cls, filepath_or_buffer):
+    def from_moonshot(cls, results):
         """
-        Creates a Performance instance from a moonshot backtest results CSV.
+        Creates a Performance instance from a moonshot backtest results DataFrame.
         """
-        results = pd.read_csv(filepath_or_buffer,
-                              parse_dates=["Date"],
-                              index_col=["Field","Date"])
         fields = results.index.get_level_values("Field").unique()
         kwargs = {}
         kwargs["returns"] = results.loc["Return"]
@@ -322,23 +319,62 @@ class Tearsheet(object):
         self.title = "{0} - {1}: {2}".format(
             min_date, max_date, ", ".join(cols))
 
-    def from_moonshot_backtest(self, filepath_or_buffer, *args, **kwargs):
-        performance = Performance.from_moonshot_backtest(filepath_or_buffer)
-        return self.create_full_tearsheet(performance, *args, **kwargs)
+    def from_moonshot(self, results, **kwargs):
+        """
+        Creates a full tear sheet from a moonshot backtest results DataFrame.
+
+        Parameters
+        ----------
+        results : DataFrame
+            multiindex (Field, Date) DataFrame of backtest results
+
+        Returns
+        -------
+        None
+        """
+        performance = Performance.from_moonshot(results)
+        return self.create_full_tearsheet(performance, **kwargs)
+
+    def from_moonshot_csv(self, filepath_or_buffer, **kwargs):
+        """
+        Creates a full tear sheet from a moonshot backtest results CSV.
+
+        Parameters
+        ----------
+        filepath_or_buffer : str or file-like object
+            filepath or file-like object of the CSV
+
+        Returns
+        -------
+        None
+        """
+        results = pd.read_csv(filepath_or_buffer,
+                              parse_dates=["Date"],
+                              index_col=["Field","Date"])
+        return self.from_moonshot(results, **kwargs)
 
     def create_full_tearsheet(
         self,
         performance,
+        include_exposures_tearsheet=True,
+        include_annual_breakdown_tearsheet=True,
         montecarlo_n=None,
         montecarlo_preaggregate=True,
-        title=None,
-        include_exposures_tearsheet=True,
-        include_annual_breakdown_tearsheet=True):
+        title=None
+        ):
         """
+        Create a full tear sheet of performance results and market exposure.
+
         Parameters
         ----------
         performance : instance
             Performance instance
+
+        include_exposures : bool
+            whether to include a tear sheet of market exposure
+
+        include_annual_breakdown_tearsheet : bool
+            whether to include an annual breakdown of Sharpe and CAGR
 
         montecarlo_n : int
             how many Montecarlo simulations to run on the returns, if any
@@ -347,11 +383,9 @@ class Tearsheet(object):
             whether Montecarlo simulator should preaggregate returns;
             ignored unless montecarlo_n is nonzero
 
-        include_exposures : bool
-            whether to include a tear sheet of market exposure
-
-        include_annual_breakdown_tearsheet : bool
-            whether to include an annual breakdown of Sharpe and CAGR
+        Returns
+        -------
+        None
         """
         if title:
             self.title = title
