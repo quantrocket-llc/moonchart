@@ -32,9 +32,6 @@ class Performance(object):
     pnl
         a DataFrame of pnl
 
-    order_exposures
-        a Dataframe of absolute order exposures (i.e. including non-fills)
-
     net_exposures
         a Dataframe of net (hedged) exposure
 
@@ -64,7 +61,6 @@ class Performance(object):
         self,
         returns,
         pnl=None,
-        order_exposures=None,
         net_exposures=None,
         abs_exposures=None,
         commissions=None,
@@ -77,7 +73,6 @@ class Performance(object):
 
         self.returns = returns
         self.pnl = pnl
-        self.order_exposures = order_exposures
         self.net_exposures = net_exposures
         self.abs_exposures = abs_exposures
         self.commissions = commissions
@@ -108,8 +103,6 @@ class Performance(object):
         fields = results.index.get_level_values("Field").unique()
         kwargs = {}
         kwargs["returns"] = results.loc["Return"]
-        if "OrderExposure" in fields:
-            kwargs["order_exposures"] = results.loc["OrderExposure"]
         if "NetExposure" in fields:
             kwargs["net_exposures"] = results.loc["NetExposure"]
         if "AbsExposure" in fields:
@@ -272,9 +265,6 @@ class AggregatePerformance(Performance):
         if performance.commissions_pct is not None:
             self.commissions_pct = performance.commissions_pct.sum(axis=1)
 
-        if performance.order_exposures is not None:
-            self.order_exposures = performance.order_exposures.sum(axis=1)
-
         if performance.net_exposures is not None:
             self.net_exposures = performance.net_exposures.sum(axis=1)
 
@@ -376,7 +366,7 @@ class Tearsheet(object):
             self.create_annual_breakdown_tearsheet(performance, agg_performance)
 
         if include_exposures_tearsheet and any([exposures is not None for exposures in (
-            performance.order_exposures, performance.net_exposures, performance.abs_exposures)]):
+            performance.net_exposures, performance.abs_exposures)]):
             self.create_exposures_tearsheet(performance, agg_performance)
 
         if montecarlo_n:
@@ -578,10 +568,6 @@ class Tearsheet(object):
         agg_stats = OrderedDict()
         agg_stats_text = ""
 
-        if agg_performance.order_exposures is not None:
-            avg_order_exposures = agg_performance.get_avg_exposure(agg_performance.order_exposures)
-            agg_stats["Avg Order Exposure"] = round(avg_order_exposures, 3)
-
         if agg_performance.net_exposures is not None:
             avg_net_exposures = agg_performance.get_avg_exposure(agg_performance.net_exposures)
             agg_stats["Avg Net Exposure"] = round(avg_net_exposures, 3)
@@ -606,14 +592,6 @@ class Tearsheet(object):
         else:
             tight_layout = None
 
-        if performance.order_exposures is not None:
-            fig = plt.figure("Order Exposures", figsize=self.window_size, tight_layout=tight_layout)
-            fig.suptitle(self.title)
-            axis = fig.add_subplot(subplot)
-            plot = performance.order_exposures.plot(ax=axis, title="Order Exposures {0}".format(extra_label))
-            if isinstance(performance.order_exposures, pd.DataFrame):
-                self._clear_legend(plot)
-
         if performance.net_exposures is not None:
             fig = plt.figure("Net Exposures", figsize=self.window_size, tight_layout=tight_layout)
             fig.suptitle(self.title)
@@ -635,12 +613,6 @@ class Tearsheet(object):
         fig = plt.figure("Avg Exposure {0}".format(extra_label), figsize=self.window_size,
                          tight_layout=self._tight_layout_clear_suptitle)
         fig.suptitle(self.title)
-
-        if performance.order_exposures is not None:
-            avg_order_exposures = performance.get_avg_exposure(performance.order_exposures)
-            axis = fig.add_subplot(2,2,1)
-            avg_order_exposures.sort_values(inplace=False).plot(
-                ax=axis, kind="bar", title="Avg Order Exposure {0}".format(extra_label))
 
         if performance.abs_exposures is not None:
             avg_abs_exposures = performance.get_avg_exposure(performance.abs_exposures)
