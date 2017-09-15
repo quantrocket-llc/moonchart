@@ -607,7 +607,7 @@ class Tearsheet(object):
         agg_stats_text = self._get_agg_stats_text(agg_stats)
         fig = plt.figure("Aggregate Performance", figsize=self.window_size)
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
-        fig.text(.3, .45, agg_stats_text,
+        fig.text(.4, .4, agg_stats_text,
                  bbox=dict(facecolor="#e1e1e6", edgecolor='#aaaaaa', alpha=0.5),
                  family="monospace",
                  fontsize="xx-large"
