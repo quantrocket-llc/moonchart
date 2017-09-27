@@ -162,9 +162,12 @@ class Performance(object):
         if compound is None:
             compound = self.compound_returns
         if compound:
-            return (1 + returns).cumprod()
+            cum_returns = (1 + returns).cumprod()
         else:
-            return returns.cumsum() + 1
+            cum_returns = returns.cumsum() + 1
+
+        cum_returns.index.name = "Date"
+        return cum_returns
 
     def get_cagr(self, cum_returns):
         """

@@ -13,15 +13,30 @@
 # limitations under the License.
 
 import pandas as pd
+import seaborn as sns
+from collections import OrderedDict
+import matplotlib
 import matplotlib.pyplot as plt
+from .perf import Performance
 from .base import BaseTearsheet
 
 class ParamscanTearsheet(BaseTearsheet):
 
-    def create_paramscan_tearsheet(self, results):
+    def from_moonshot(self, results, **kwargs):
+        """
+        Creates a param scan tear sheet from a moonshot param scan results
+        DataFrame.
 
-        # Parse csv
-        results = pd.read_csv("paramscan_results.csv")
+        Parameters
+        ----------
+        results : DataFrame
+            DataFrame of paramscan results with columns
+            (Field, StrategyOrDate, param1[, param2], Value)
+
+        Returns
+        -------
+        None
+        """
         idx_cols=list(results.columns)
         idx_cols.remove("Value")
         results = results.set_index(idx_cols)
@@ -31,63 +46,146 @@ class ParamscanTearsheet(BaseTearsheet):
         params = idx_cols
         results = results.unstack(level=params)
 
-        # if 1d, create bar plots for CAGR, Sharpe, Max DD etc
-        sharpes = results.loc["Sharpe"]
-        sharpes.index.name = "Strategy"
-        sharpes.T.plot(kind="bar")
+        return self.create_full_tearsheet(results, **kwargs)
 
-        # if 2D, create a sheet with a plot for each strategy, and do a heatmap
-        fig = plt.figure("MAVG_WINDOW + FOO")
-        # see shortfall command for subplot calculations
-        ax = fig.add_subplot(111, title="etf-demo")
-        sns.heatmap(sharpes.T["etf-demo"].unstack(), annot=True,
-                annot_kws={"size": 9},
-                center=0.0,
-                cbar=False,
-                ax=ax,
-                cmap=matplotlib.cm.RdYlGn)
-
-        # Create performance from agg_returns
-        # Plot cum returns, max dd for details but not agg
-
-        cagrs.name = "CAGR"
-        sharpes.name = "Sharpe"
-        max_drawdowns.name = "Max Drawdown"
-        abs_exposures.name = "Absolute Exposure"
-        normalized_cagrs.name = "Normalized CAGR (CAGR/Exposure)"
-
-        series = [cagrs, sharpes, max_drawdowns, abs_exposures, normalized_cagrs]
-
-        title = param1
-        if param2:
-            title = "{0} and {1}".format(title, param2)
-        if date_range_msg:
-            title = "{0} ({1})".format(title, date_range_msg)
-
-        performance = agg_performance = Performance(agg_returns)
-
-        tearsheet = Tearsheet(pdf_filename=outfile)
-        tearsheet.suptitle = title
-        tearsheet.plot_arbitrary(series, kind="bar", title=title)
-        tearsheet.create_performance_tearsheet(performance, agg_performance)
-
-    def plot_arbitrary(self, series, kind="line", title=None):
+    def from_moonshot_csv(self, filepath_or_buffer, **kwargs):
         """
-        Plots an arbitrary list of Series or DataFrames. The Series or
-        DataFrame names are used as the chart titles.
-        """
-        series_list = series
-        rows, cols = self._get_plot_dimensions(len(series))
-        fig = plt.figure(figsize=self.window_size)
-        if title:
-            self.suptitle = title
+        Creates a full tear sheet from a moonshot paramscan results CSV.
 
-        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
-        for i, series in enumerate(series_list):
-            axis = fig.add_subplot(rows, cols, i + 1)
-            plot = series.plot(ax=axis, kind=kind, title=series.name, fontsize="small")
-            if isinstance(series, pd.DataFrame):
-                self._clear_legend(plot)
+        Parameters
+        ----------
+        filepath_or_buffer : str or file-like object
+            filepath or file-like object of the CSV
+
+        Returns
+        -------
+        None
+        """
+        results = pd.read_csv(filepath_or_buffer)
+        return self.from_moonshot(results, **kwargs)
+
+    def create_full_tearsheet(self, results, heatmap_2d=True):
+        """
+        Create a full tear sheet of param scan results.
+
+        Parameters
+        ----------
+        results : DataFrame
+            multi-index (Field, StrategyOrDate) DataFrame of param scan results,
+            with param vals as (possibly multi-level) columns
+
+        Returns
+        -------
+        None
+        """
+        # Set suptitle
+        returns = results.loc["AggReturn"]
+        returns.index = pd.to_datetime(returns.index)
+        returns.index.name = "Date"
+        min_date = returns.index.min().date().isoformat()
+        max_date = returns.index.max().date().isoformat()
+
+        if results.columns.nlevels == 2:
+            params_title = " / ".join(results.columns.names)
+        else:
+            params_title = results.columns.name
+
+        self.suptitle = "{0} ({1} - {2})".format(
+            params_title, min_date, max_date)
+
+        # Plot 1d bar charts or 2d heat maps
+        if results.columns.nlevels == 2 and heatmap_2d:
+            self._create_2d_heatmaps(results)
+        else:
+            self._create_1d_bar_charts(results)
+
+        # Plot performance plots
+        performance = Performance(returns)
+        performance.fill_performance_cache()
+        self._create_performance_plots(performance, subplot=111, extra_label=" (Aggregate)")
 
         self._save_or_show()
 
+    def _create_1d_bar_charts(self, results):
+        """
+        Creates bar charts for 1d param scans.
+        """
+        fields = (
+            ("Cagr", "CAGR"),
+            ("Sharpe", "Sharpe"),
+            ("MaxDrawdown", "Max Drawdown"),
+            ("AbsExposure", "Absolute Exposure"),
+            ("NormalizedCagr", "Normalized CAGR (CAGR/Exposure)")
+        )
+        fields = OrderedDict(fields)
+
+        rows, cols = self._get_plot_dimensions(len(fields))
+        # TODO: dynamically adjust window height based on number of plots
+        fig = plt.figure("Parameter Scan Results", figsize=self.window_size)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+
+        for i, field in enumerate(list(fields.keys())):
+            field_results = results.loc[field]
+            field_results.index.name = "Strategy"
+            field_results = field_results.T
+
+            axis = fig.add_subplot(rows, cols, i + 1)
+            plot = field_results.plot(ax=axis, kind="bar", title=fields[field],
+                                      fontsize="small")
+            if isinstance(field_results, pd.DataFrame):
+                self._clear_legend(plot, legend_title="Strategy")
+
+            # Remove legend on all but the upper right subplot, to
+            # clean up appearance
+            is_upper_right =  i+1 == cols
+            if not is_upper_right:
+                plot.legend_.remove()
+
+            # Hide x-axis label except on last row to save space
+            is_last_row = (i+1) > (rows-1) * cols
+            if not is_last_row:
+                x_axis = axis.axes.get_xaxis()
+                x_label = x_axis.get_label()
+                x_label.set_visible(False)
+
+    def _create_2d_heatmaps(self, results):
+        """
+        Creates heat maps for 2d param scans. There is one figure per field,
+        with subplots for each strategy.
+        """
+        fields = (
+            ("Cagr", "CAGR"),
+            ("Sharpe", "Sharpe"),
+            ("MaxDrawdown", "Max DD"),
+            ("AbsExposure", "Abs Exposure"),
+            ("NormalizedCagr", "Normalized CAGR")
+        )
+        fields = OrderedDict(fields)
+
+        rows, cols = None, None
+
+        # TODO: dynamically adjust window height based on number of plots
+        fig = plt.figure("Parameter Scan Heat Maps", figsize=self.window_size, tight_layout=self._tight_layout_clear_suptitle)
+        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+
+        for i, (field, label) in enumerate(fields.items()):
+            field_results = results.loc[field]
+            field_results.index.name = "Strategy"
+            field_results = field_results.T
+            strategies = field_results.columns
+            num_strategies = len(strategies)
+            num_fields = len(fields)
+            if not rows:
+                rows, cols = self._get_plot_dimensions(num_strategies*len(fields))
+
+            for ii, strategy in enumerate(strategies):
+                strategy_results = field_results[strategy]
+
+                title = "{0} ({1})".format(label, strategy)
+                axis = fig.add_subplot(rows, cols, i*num_strategies + ii+ 1, title=title)
+                sns.heatmap(strategy_results.unstack(), annot=True,
+                    annot_kws={"size": 9},
+                    center=0.0,
+                    cbar=False,
+                    ax=axis,
+                    cmap=matplotlib.cm.RdYlGn)

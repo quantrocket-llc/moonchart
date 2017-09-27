@@ -27,6 +27,7 @@ setup(name='quantrocket-moonchart',
     packages=find_packages(),
     install_requires=[
         "matplotlib",
-        "pandas"
+        "pandas",
+        "seaborn"
     ]
 )
