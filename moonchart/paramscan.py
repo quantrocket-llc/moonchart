@@ -120,8 +120,10 @@ class ParamscanTearsheet(BaseTearsheet):
         fields = OrderedDict(fields)
 
         rows, cols = self._get_plot_dimensions(len(fields))
-        # TODO: dynamically adjust window height based on number of plots
-        fig = plt.figure("Parameter Scan Results", figsize=self.window_size)
+        # dynamically adjust window height based on number of plots
+        width = max((self.window_size[0], cols*5+2))
+        height = max((self.window_size[1], rows*2+3))
+        fig = plt.figure("Parameter Scan Results", figsize=(width, height))
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
 
         for i, field in enumerate(list(fields.keys())):
@@ -162,11 +164,7 @@ class ParamscanTearsheet(BaseTearsheet):
         )
         fields = OrderedDict(fields)
 
-        rows, cols = None, None
-
-        # TODO: dynamically adjust window height based on number of plots
-        fig = plt.figure("Parameter Scan Heat Maps", figsize=self.window_size, tight_layout=self._tight_layout_clear_suptitle)
-        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+        fig = None
 
         for i, (field, label) in enumerate(fields.items()):
             field_results = results.loc[field]
@@ -175,8 +173,13 @@ class ParamscanTearsheet(BaseTearsheet):
             strategies = field_results.columns
             num_strategies = len(strategies)
             num_fields = len(fields)
-            if not rows:
-                rows, cols = self._get_plot_dimensions(num_strategies*len(fields))
+            if not fig:
+                rows, cols = self._get_plot_dimensions(num_strategies*num_fields)
+                # dynamically adjust window height based on number of plots
+                width = max((self.window_size[0], cols*5+2))
+                height = max((self.window_size[1], rows*2+3))
+                fig = plt.figure("Parameter Scan Heat Maps", figsize=(width, height), tight_layout=self._tight_layout_clear_suptitle)
+                fig.suptitle(self.suptitle, **self.suptitle_kwargs)
 
             for ii, strategy in enumerate(strategies):
                 strategy_results = field_results[strategy]
