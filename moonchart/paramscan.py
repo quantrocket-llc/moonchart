@@ -74,6 +74,9 @@ class ParamscanTearsheet(BaseTearsheet):
             multi-index (Field, StrategyOrDate) DataFrame of param scan results,
             with param vals as (possibly multi-level) columns
 
+        heatmap_2d : bool
+            use heat maps for 2 paramscans; if False, use bar charts
+
         Returns
         -------
         None
