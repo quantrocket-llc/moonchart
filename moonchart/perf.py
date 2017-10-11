@@ -142,7 +142,7 @@ class Performance(object):
         DataFrame or Series).
         """
         mean = (returns - self.riskfree).mean()
-        if mean == 0:
+        if isinstance(mean, float) and mean == 0:
             return 0
         std = (returns - self.riskfree).std()
         # Returns are assumed to represent daily returns, so annualize the Sharpe ratio
