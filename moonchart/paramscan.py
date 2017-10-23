@@ -133,6 +133,7 @@ class ParamscanTearsheet(BaseTearsheet):
             field_results = results.loc[field]
             field_results.index.name = "Strategy"
             field_results = field_results.T
+            field_results.index = field_results.index.str.wrap(10)
 
             axis = fig.add_subplot(rows, cols, i + 1)
             plot = field_results.plot(ax=axis, kind="bar", title=fields[field],
@@ -189,7 +190,9 @@ class ParamscanTearsheet(BaseTearsheet):
 
                 title = "{0} ({1})".format(label, strategy)
                 axis = fig.add_subplot(rows, cols, i*num_strategies + ii+ 1, title=title)
-                sns.heatmap(strategy_results.unstack(), annot=True,
+                strategy_results = strategy_results.unstack()
+                strategy_results.index = strategy_results.index.str.wrap(10)
+                sns.heatmap(strategy_results, annot=True,
                     annot_kws={"size": 9},
                     center=0.0,
                     cbar=False,
