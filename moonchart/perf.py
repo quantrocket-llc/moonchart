@@ -106,6 +106,28 @@ class Performance(object):
 
         return cls(**kwargs)
 
+    @classmethod
+    def from_pnl(cls, results):
+        """
+        Creates a Performance instance from a PNL results DataFrame.
+        """
+        fields = results.index.get_level_values("Field").unique()
+        kwargs = {}
+        kwargs["returns"] = results.loc["Return"].astype(np.float64)
+        kwargs["pnl"] = results.loc["Pnl"].astype(np.float64)
+        if "NetExposure" in fields:
+            kwargs["net_exposures"] = results.loc["NetExposure"].astype(np.float64)
+        if "AbsExposure" in fields:
+            kwargs["abs_exposures"] = results.loc["AbsExposure"].astype(np.float64)
+        if "Commission" in fields:
+            kwargs["commissions_pct"] = results.loc["Commission"].astype(np.float64)
+        if "CommissionAmount" in fields:
+            kwargs["commissions"] = results.loc["CommissionAmount"].astype(np.float64)
+        if "Benchmark" in fields:
+            kwargs["benchmark"] = results.loc["Benchmark"].astype(np.float64)
+
+        return cls(**kwargs)
+
     def fill_performance_cache(self):
         if self._performance_cache_filled:
             return

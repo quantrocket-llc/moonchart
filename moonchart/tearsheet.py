@@ -71,6 +71,40 @@ class Tearsheet(BaseTearsheet):
                               index_col=["Field","Date"])
         return self.from_moonshot(results, **kwargs)
 
+    def from_pnl(self, results, **kwargs):
+        """
+        Creates a full tear sheet from a pnl DataFrame.
+
+        Parameters
+        ----------
+        results : DataFrame
+            multiindex (Field, Date) DataFrame of performance results
+
+        Returns
+        -------
+        None
+        """
+        performance = Performance.from_pnl(results)
+        return self.create_full_tearsheet(performance, **kwargs)
+
+    def from_pnl_csv(self, filepath_or_buffer, **kwargs):
+        """
+        Creates a full tear sheet from a pnl CSV.
+
+        Parameters
+        ----------
+        filepath_or_buffer : str or file-like object
+            filepath or file-like object of the CSV
+
+        Returns
+        -------
+        None
+        """
+        results = pd.read_csv(filepath_or_buffer,
+                              parse_dates=["Date"],
+                              index_col=["Field","Date"])
+        return self.from_pnl(results, **kwargs)
+
     def create_full_tearsheet(
         self,
         performance,
@@ -196,9 +230,9 @@ class Tearsheet(BaseTearsheet):
         agg_stats_text = ""
 
         if agg_performance.pnl is not None:
-            agg_stats["PNL"] = agg_performance.pnl.sum()
+            agg_stats["PNL"] = round(agg_performance.pnl.sum(), 4)
         if agg_performance.commissions is not None:
-            agg_stats["Commissions"] = agg_performance.commissions.sum()
+            agg_stats["Commissions"] = round(agg_performance.commissions.sum(), 4)
 
         agg_stats["CAGR"] = agg_performance.cagr
         agg_stats["Sharpe"] = agg_performance.sharpe
