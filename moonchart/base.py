@@ -141,12 +141,31 @@ class BaseTearsheet(object):
             # calcuated based on an account balance that changes due to
             # causes other than the strategies being charted (e.g. other
             # strategies, contributions/withdrawals, etc.)
-            fig = plt.figure("Cumulative PNL", figsize=self.window_size, tight_layout=tight_layout)
+            fig = plt.figure("Cumulative PNL", figsize=self.window_size,
+                             tight_layout=self._tight_layout_clear_suptitle)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
-            plot = performance.cum_pnl.plot(ax=axis, title="Cumulative PNL{0}".format(extra_label))
-            if isinstance(performance.cum_pnl, pd.DataFrame):
-                self._clear_legend(plot)
+            if (
+                performance.commissions is not None
+                # a 212 subplot means a detailed plot, which isn't compatible with
+                # showing commissions
+                and subplot != 212
+                # if all commissions are null/0, don't show them
+                and (performance.commissions.fillna(0) != 0).any()):
+                cum_commissions = performance.commissions.cumsum()
+                cum_commissions.name = "commissions"
+                cum_pnl = performance.pnl.cumsum()
+                cum_pnl.name = "pnl"
+                cum_gross_pnl = cum_pnl + cum_commissions.abs()
+                cum_gross_pnl.name = "gross pnl"
+                pnl_breakdown = pd.concat((cum_pnl, cum_gross_pnl, cum_commissions), axis=1)
+                plot = pnl_breakdown.plot(ax=axis, title="Cumulative PNL {0}".format(extra_label))
+                if isinstance(returns_breakdown, pd.DataFrame):
+                    self._clear_legend(plot)
+            else:
+                plot = performance.cum_pnl.plot(ax=axis, title="Cumulative PNL {0}".format(extra_label))
+                if isinstance(performance.cum_pnl, pd.DataFrame):
+                    self._clear_legend(plot)
 
         if len(performance.rolling_sharpe.index) > performance.rolling_sharpe_window:
             fig = plt.figure("Rolling Sharpe", figsize=self.window_size, tight_layout=tight_layout)

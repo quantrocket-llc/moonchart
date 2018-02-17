@@ -178,11 +178,6 @@ class Tearsheet(BaseTearsheet):
             subplot=211 if show_details else 111,
             extra_label="(Aggregate)" if show_details else "")
 
-        if agg_performance.pnl is not None and agg_performance.commissions is not None:
-            self._create_gross_and_net_pnl_plot(
-                agg_performance,
-                extra_label="(Aggregate)" if show_details else "")
-
         if show_details:
             self._create_performance_plots(performance, subplot=212, extra_label="(Details)")
             self._create_detailed_performance_bar_charts(performance, extra_label="(Details)")
@@ -198,7 +193,7 @@ class Tearsheet(BaseTearsheet):
                 pnl.name = "pnl"
                 commissions = performance.commissions.sum()
                 commissions.name = "commissions"
-                gross_pnl = pnl + commissions.abs()
+                gross_pnl = pnl + commissions
                 gross_pnl.name = "gross pnl"
                 pnl = pd.concat((pnl, gross_pnl, commissions), axis=1)
             pnl.plot(
@@ -246,20 +241,6 @@ class Tearsheet(BaseTearsheet):
                  family="monospace",
                  fontsize="xx-large"
                  )
-
-    def _create_gross_and_net_pnl_plot(self, agg_performance, extra_label):
-        cum_commissions = agg_performance.commissions.cumsum()
-        cum_commissions.name = "commissions"
-        cum_pnl = agg_performance.pnl.cumsum()
-        cum_pnl.name = "pnl"
-        cum_gross_pnl = cum_pnl + cum_commissions.abs()
-        cum_gross_pnl.name = "gross pnl"
-        pnl_breakdown = pd.concat((cum_pnl, cum_gross_pnl, cum_commissions), axis=1)
-        fig = plt.figure("Gross and Net PNL", figsize=self.window_size,
-                         tight_layout=self._tight_layout_clear_suptitle)
-        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
-        axis = fig.add_subplot(111)
-        pnl_breakdown.plot(ax=axis, title="Gross and Net PNL {0}".format(extra_label))
 
     def create_exposures_tearsheet(self, performance, agg_performance):
         """
