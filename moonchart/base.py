@@ -117,7 +117,7 @@ class BaseTearsheet(object):
             cum_commissions_pct = performance.get_cum_returns(commissions_pct)
             cum_commissions_pct.name = "commissions"
             performance.cum_returns_with_baseline.name = "returns"
-            cum_gross_returns = performance.cum_returns_with_baseline.div(cum_commissions_pct.abs())
+            cum_gross_returns = performance.cum_returns_with_baseline.multiply(cum_commissions_pct)
             cum_gross_returns.name = "gross returns"
             returns_breakdown = pd.concat((performance.cum_returns_with_baseline, cum_gross_returns, cum_commissions_pct), axis=1)
             plot = returns_breakdown.plot(ax=axis, title="Cumulative Returns {0}".format(extra_label))
