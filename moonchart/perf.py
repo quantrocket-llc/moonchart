@@ -14,6 +14,7 @@
 
 import numpy as np
 import pandas as pd
+from .exceptions import InsufficientData
 
 class Performance(object):
     """
@@ -67,6 +68,10 @@ class Performance(object):
         ):
 
         self.returns = returns
+        if len(self.returns.index) < 2:
+            raise InsufficientData(
+                "Moonchart needs at least 2 dates to analyze performance, "
+                "but returns DataFrame has length {0}".format(len(self.returns.index)))
         self.pnl = pnl
         self.net_exposures = net_exposures
         self.abs_exposures = abs_exposures
