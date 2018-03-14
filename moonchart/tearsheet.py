@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 from collections import OrderedDict
 import matplotlib.pyplot as plt
+import warnings
 from .perf import Performance, AggregatePerformance
 from .base import BaseTearsheet
 
@@ -146,6 +147,11 @@ class Tearsheet(BaseTearsheet):
 
         agg_performance = AggregatePerformance(performance)
 
+        num_cols = len(performance.returns.columns)
+        if num_cols > self.max_cols_for_details:
+            warnings.warn("Suppressing details because there are more than {0} columns".format(
+                self.max_cols_for_details))
+
         self.create_performance_tearsheet(performance, agg_performance)
 
         if include_annual_breakdown_tearsheet:
@@ -167,7 +173,9 @@ class Tearsheet(BaseTearsheet):
         """
         agg_performance.fill_performance_cache()
 
-        show_details = len(performance.returns.columns) > 1
+        num_cols = len(performance.returns.columns)
+        show_details = num_cols > 1 and num_cols <= self.max_cols_for_details
+
         if show_details:
             performance.fill_performance_cache()
 
@@ -248,7 +256,8 @@ class Tearsheet(BaseTearsheet):
         """
         agg_performance.fill_performance_cache()
 
-        show_details = len(performance.returns.columns) > 1
+        num_cols = len(performance.returns.columns)
+        show_details = num_cols > 1 and num_cols <= self.max_cols_for_details
         if show_details:
             performance.fill_performance_cache()
 
@@ -343,7 +352,8 @@ class Tearsheet(BaseTearsheet):
         """
         agg_performance.fill_performance_cache()
 
-        show_details = len(performance.returns.columns) > 1
+        num_cols = len(performance.returns.columns)
+        show_details = num_cols > 1 and num_cols <= self.max_cols_for_details
         if show_details:
             performance.fill_performance_cache()
 

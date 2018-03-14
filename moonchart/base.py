@@ -24,7 +24,7 @@ class BaseTearsheet(object):
     """
     DEFAULT_TITLE = "Performance tear sheet"
 
-    def __init__(self, pdf_filename=None, window_size=None):
+    def __init__(self, pdf_filename=None, window_size=None, max_cols_for_details=25):
         self.window_size = window_size or (12.0, 7.5) # width, height in inches
         plt.rc("legend", fontsize="xx-small")
         plt.rc("axes",
@@ -51,6 +51,7 @@ class BaseTearsheet(object):
         self.suptitle = self.DEFAULT_TITLE
         self.suptitle_kwargs = {
             "bbox": dict(facecolor="#e1e1e6", edgecolor='#aaaaaa', alpha=0.5)}
+        self.max_cols_for_details = max_cols_for_details
 
     def _save_or_show(self):
         """
