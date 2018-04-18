@@ -40,6 +40,9 @@ class Performance(object):
     commissions_pct : DataFrame, optional
         a DataFrame of commissions, in percentages
 
+    slippages : DataFrame, optional
+        a DataFrame of slippages, in percentages
+
     benchmark : Series, optional
         a Series of prices for a benchmark
 
@@ -61,6 +64,7 @@ class Performance(object):
         abs_exposures=None,
         commissions=None,
         commissions_pct=None,
+        slippages=None,
         benchmark=None,
         riskfree=0,
         compound_returns=True,
@@ -77,6 +81,7 @@ class Performance(object):
         self.abs_exposures = abs_exposures
         self.commissions = commissions
         self.commissions_pct = commissions_pct
+        self.slippages = slippages
         self.benchmark = benchmark
         self.riskfree = riskfree
         self.rolling_sharpe_window = rolling_sharpe_window
@@ -106,6 +111,8 @@ class Performance(object):
             kwargs["abs_exposures"] = results.loc["AbsExposure"].astype(np.float64)
         if "Commission" in fields:
             kwargs["commissions_pct"] = results.loc["Commission"].astype(np.float64)
+        if "Slippage" in fields:
+            kwargs["slippages"] = results.loc["Slippage"].astype(np.float64)
         if "Benchmark" in fields:
             kwargs["benchmark"] = results.loc["Benchmark"].astype(np.float64)
 
@@ -310,6 +317,9 @@ class AggregatePerformance(Performance):
 
         if performance.commissions_pct is not None:
             self.commissions_pct = performance.commissions_pct.sum(axis=1)
+
+        if performance.slippages is not None:
+            self.slippages = performance.slippages.sum(axis=1)
 
         if performance.net_exposures is not None:
             self.net_exposures = performance.net_exposures.sum(axis=1)

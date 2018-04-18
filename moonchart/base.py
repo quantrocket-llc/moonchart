@@ -107,20 +107,51 @@ class BaseTearsheet(object):
         if max_return >= 2:
             axis.set_yscale("log", basey=2)
 
-        if (
+        include_commissions = (
             performance.commissions_pct is not None
-            # a 212 subplot means a detailed plot, which isn't compatible with
-            # showing commissions
-            and subplot != 212
             # if all commissions are null/0, don't show them
-            and (performance.commissions_pct.fillna(0) != 0).any()):
-            commissions_pct = performance.with_baseline(performance.commissions_pct)
-            cum_commissions_pct = performance.get_cum_returns(commissions_pct)
-            cum_commissions_pct.name = "commissions"
+            and (performance.commissions_pct.fillna(0) != 0).any())
+
+        include_slippage = (
+            performance.slippages is not None
+            # if all slippages are null/0, don't show them
+            and (performance.slippages.fillna(0) != 0).any())
+
+        if (
+            # a 212 subplot means a detailed plot, which isn't compatible with
+            # showing commissions and slippage
+            subplot != 212 and (include_commissions or include_slippage)):
+
+            if include_commissions:
+                commissions_pct = performance.with_baseline(performance.commissions_pct)
+                cum_commissions_pct = performance.get_cum_returns(commissions_pct)
+                cum_commissions_pct.name = "commissions"
+
+            if include_slippage:
+                slippages = performance.with_baseline(performance.slippages)
+                cum_slippages = performance.get_cum_returns(slippages)
+                cum_slippages.name = "slippage"
+
             performance.cum_returns_with_baseline.name = "returns"
-            cum_gross_returns = performance.cum_returns_with_baseline.multiply(cum_commissions_pct)
+
+            cum_gross_returns = performance.cum_returns_with_baseline
+
+            if include_commissions:
+                cum_gross_returns = cum_gross_returns.multiply(cum_commissions_pct)
+
+            if include_slippage:
+                cum_gross_returns = cum_gross_returns.multiply(cum_slippages)
+
             cum_gross_returns.name = "gross returns"
-            returns_breakdown = pd.concat((performance.cum_returns_with_baseline, cum_gross_returns, cum_commissions_pct), axis=1)
+            breakdown_parts = [performance.cum_returns_with_baseline, cum_gross_returns]
+
+            if include_commissions:
+                breakdown_parts.append(cum_commissions_pct)
+
+            if include_slippage:
+                breakdown_parts.append(cum_slippages)
+
+            returns_breakdown = pd.concat(breakdown_parts, axis=1)
             plot = returns_breakdown.plot(ax=axis, title="Cumulative Returns {0}".format(extra_label))
             if isinstance(returns_breakdown, pd.DataFrame):
                 self._clear_legend(plot)
