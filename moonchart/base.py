@@ -15,6 +15,7 @@
 import math
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 from matplotlib import cycler
 from matplotlib.backends.backend_pdf import PdfPages
 
@@ -26,23 +27,11 @@ class BaseTearsheet(object):
 
     def __init__(self, pdf_filename=None, window_size=None, max_cols_for_details=25):
         self.window_size = window_size or (12.0, 7.5) # width, height in inches
-        plt.rc("legend", fontsize="xx-small")
-        plt.rc("axes",
-               prop_cycle=cycler("color", [
-                   "b", "g", "r", "c", "m", "y", "k",
-                   "sienna", "chartreuse", "darkorange", "springgreen", "gray",
-                   "powderblue", "cornflowerblue", "maroon", "indigo", "deeppink",
-                   "salmon", "darkseagreen", "rosybrown", "slateblue", "darkgoldenrod",
-                   "deepskyblue",
-               ]),
-               facecolor="#e1e1e6",
-               edgecolor="#aaaaaa",
-               grid=True,
-               axisbelow=True)
-        plt.rc("grid", linestyle="-", color="#ffffff")
+        plt.rc("legend", fontsize="small")
+        plt.rc("axes", axisbelow=True)
         plt.rc("figure", autolayout=True)
-        plt.rc("xtick", labelsize="xx-small")
-        plt.rc("ytick", labelsize="xx-small")
+        plt.rc("xtick", labelsize="small")
+        plt.rc("ytick", labelsize="small")
         if pdf_filename:
             self.pdf = PdfPages(pdf_filename, keep_empty=True)
         else:
@@ -50,7 +39,7 @@ class BaseTearsheet(object):
 
         self.suptitle = self.DEFAULT_TITLE
         self.suptitle_kwargs = {
-            "bbox": dict(facecolor="#e1e1e6", edgecolor='#aaaaaa', alpha=0.5)}
+            "bbox": dict(facecolor="#EAEAF2", edgecolor='white', alpha=0.5)}
         self.max_cols_for_details = max_cols_for_details
 
     def _save_or_show(self):

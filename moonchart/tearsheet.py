@@ -14,6 +14,7 @@
 
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import warnings
@@ -244,12 +245,17 @@ class Tearsheet(BaseTearsheet):
         agg_stats_text = self._get_agg_stats_text(agg_stats)
         fig = plt.figure("Aggregate Performance", figsize=self.window_size)
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
-        fig.text(.4, .4, agg_stats_text,
-                 bbox=dict(facecolor="#e1e1e6", edgecolor='#aaaaaa', alpha=0.5),
+        self.plot_textbox(fig, agg_stats_text)
+
+    def plot_textbox(self, fig, text):
+        with sns.axes_style("white", {'axes.linewidth': 0}):
+            axis = fig.add_subplot(111)
+            axis.get_xaxis().set_visible(False)
+            axis.get_yaxis().set_visible(False)
+            axis.text(0.1, 0.4, text,
                  family="monospace",
                  fontsize="xx-large"
                  )
-
     def create_exposures_tearsheet(self, performance, agg_performance):
         """
         Create a tearsheet of market exposure.
@@ -290,10 +296,7 @@ class Tearsheet(BaseTearsheet):
         agg_stats_text = self._get_agg_stats_text(agg_stats, title="Aggregate Exposure")
         fig = plt.figure("Aggregate Exposure", figsize=self.window_size)
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
-        fig.text(.3, .4, agg_stats_text,
-                 bbox=dict(facecolor="#e1e1e6", edgecolor='#aaaaaa', alpha=0.5),
-                 family="monospace",
-                 fontsize="xx-large")
+        self.plot_textbox(fig, agg_stats_text)
 
     def _create_exposures_plots(self, performance, subplot, extra_label):
         if subplot == 111:
