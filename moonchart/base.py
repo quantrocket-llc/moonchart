@@ -19,6 +19,9 @@ import seaborn as sns
 from matplotlib import cycler
 from matplotlib.backends.backend_pdf import PdfPages
 
+# Set seaborn default style
+sns.set()
+
 class BaseTearsheet(object):
     """
     Base class for tear sheets.
