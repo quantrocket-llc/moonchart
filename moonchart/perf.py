@@ -187,9 +187,16 @@ class Performance(object):
         Computes rolling Sharpe ratios for the returns. Returns should be a
         DataFrame.
         """
-        return returns.fillna(0).rolling(
-            self.rolling_sharpe_window, min_periods=self.rolling_sharpe_window).apply(
-                self.get_sharpe, raw=True)
+        rolling_returns = returns.fillna(0).rolling(
+            self.rolling_sharpe_window, min_periods=self.rolling_sharpe_window)
+        try:
+            return rolling_returns.apply(self.get_sharpe, raw=True)
+        except TypeError as e:
+            # handle pandas<0.23
+            if "apply() got an unexpected keyword argument 'raw'" in repr(e):
+                return rolling_returns.apply(self.get_sharpe)
+            else:
+                raise
 
     def get_cum_returns(self, returns, compound=None):
         """
