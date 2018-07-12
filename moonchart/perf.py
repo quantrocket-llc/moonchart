@@ -189,7 +189,7 @@ class Performance(object):
         """
         return returns.fillna(0).rolling(
             self.rolling_sharpe_window, min_periods=self.rolling_sharpe_window).apply(
-                self.get_sharpe)
+                self.get_sharpe, raw=True)
 
     def get_cum_returns(self, returns, compound=None):
         """
