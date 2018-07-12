@@ -44,7 +44,14 @@ class ParamscanTearsheet(BaseTearsheet):
         idx_cols.remove("Field")
         idx_cols.remove("StrategyOrDate")
         params = idx_cols
+
+        # preserve param order (pandas unstack() will lexsort)
+        first_field = results.index.get_level_values("Field")[0]
+        first_strategy = results.index.get_level_values("StrategyOrDate")[0]
+        desired_cols = results.loc[first_field].loc[first_strategy].index
+
         results = results.unstack(level=params)
+        results =results.reindex(columns=desired_cols)
 
         return self.create_full_tearsheet(results, **kwargs)
 
