@@ -143,7 +143,11 @@ class BaseTearsheet(object):
             if include_slippage:
                 breakdown_parts.append(cum_slippages)
 
-            returns_breakdown = pd.concat(breakdown_parts, axis=1)
+            try:
+                returns_breakdown = pd.concat(breakdown_parts, axis=1, sort=True)
+            except TypeError:
+                # sort was introduced in pandas 0.23
+                returns_breakdown = pd.concat(breakdown_parts, axis=1)
             plot = returns_breakdown.plot(ax=axis, title="Cumulative Returns {0}".format(extra_label))
             if isinstance(returns_breakdown, pd.DataFrame):
                 self._clear_legend(plot)
@@ -182,7 +186,11 @@ class BaseTearsheet(object):
                 cum_pnl.name = "pnl"
                 cum_gross_pnl = cum_pnl + cum_commissions.abs()
                 cum_gross_pnl.name = "gross pnl"
-                pnl_breakdown = pd.concat((cum_pnl, cum_gross_pnl, cum_commissions), axis=1)
+                try:
+                    pnl_breakdown = pd.concat((cum_pnl, cum_gross_pnl, cum_commissions), axis=1, sort=True)
+                except TypeError:
+                    # sort was introduced in pandas 0.23
+                    pnl_breakdown = pd.concat((cum_pnl, cum_gross_pnl, cum_commissions), axis=1)
                 plot = pnl_breakdown.plot(ax=axis, title="Cumulative PNL {0}".format(extra_label))
                 if isinstance(returns_breakdown, pd.DataFrame):
                     self._clear_legend(plot)
@@ -215,7 +223,11 @@ class BaseTearsheet(object):
             if isinstance(performance.cum_returns_with_baseline, pd.Series):
                 performance.cum_returns_with_baseline.name = "strategy"
             benchmark_cum_returns = performance.get_cum_returns(performance.with_baseline(benchmark_returns))
-            vs_benchmark = pd.concat((performance.cum_returns_with_baseline, benchmark_cum_returns), axis=1)
+            try:
+                vs_benchmark = pd.concat((performance.cum_returns_with_baseline, benchmark_cum_returns), axis=1, sort=True)
+            except TypeError:
+                # sort was introduced in pandas 0.23
+                vs_benchmark = pd.concat((performance.cum_returns_with_baseline, benchmark_cum_returns), axis=1)
             plot = vs_benchmark.plot(ax=axis, title="Cumulative Returns vs Benchmark {0}".format(extra_label))
             if isinstance(vs_benchmark, pd.DataFrame):
                 self._clear_legend(plot)

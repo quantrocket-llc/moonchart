@@ -204,7 +204,11 @@ class Tearsheet(BaseTearsheet):
                 commissions.name = "commissions"
                 gross_pnl = pnl + commissions
                 gross_pnl.name = "gross pnl"
-                pnl = pd.concat((pnl, gross_pnl, commissions), axis=1)
+                try:
+                    pnl = pd.concat((pnl, gross_pnl, commissions), axis=1, sort=True)
+                except TypeError:
+                    # sort was introduced in pandas 0.23
+                    pnl = pd.concat((pnl, gross_pnl, commissions), axis=1)
             pnl.plot(
                 ax=axis, kind="bar", title="PNL {0}".format(extra_label))
 
@@ -431,7 +435,11 @@ class Tearsheet(BaseTearsheet):
                 sim_returns = returns.apply(np.random.permutation).sum(axis=1)
             all_simulations.append(sim_returns)
 
-        sim_returns = pd.concat(all_simulations, axis=1)
+        try:
+            sim_returns = pd.concat(all_simulations, axis=1, sort=False)
+        except TypeError:
+            # sort was introduced in pandas 0.23
+            sim_returns = pd.concat(all_simulations, axis=1)
 
         if not preaggregate:
             returns = returns.sum(axis=1)

@@ -42,7 +42,11 @@ class ShortFallTearsheet(BaseTearsheet):
             strategy_live_returns.name = "live"
             strategy_simulated_returns = simulated_returns[strategy]
             strategy_simulated_returns.name = "simulated"
-            strategy_returns = pd.concat((strategy_live_returns, strategy_simulated_returns), axis=1).fillna(0)
+            try:
+                strategy_returns = pd.concat((strategy_live_returns, strategy_simulated_returns), axis=1, sort=True).fillna(0)
+            except TypeError:
+                # sort was introduced in pandas 0.23
+                strategy_returns = pd.concat((strategy_live_returns, strategy_simulated_returns), axis=1).fillna(0)
             cum_returns = self.cum_returns(self._with_baseline(strategy_returns))
             drawdowns = self.drawdowns(cum_returns)
             shortfall = cum_returns.live - cum_returns.simulated

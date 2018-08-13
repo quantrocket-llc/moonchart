@@ -167,7 +167,11 @@ class Performance(object):
             baseline_row = pd.DataFrame(0, index=[prior_period], columns=data.columns)
         else:
             baseline_row = pd.Series(0, index=[prior_period], name=data.name)
-        data_with_baseline = pd.concat((baseline_row, data))
+        try:
+            data_with_baseline = pd.concat((baseline_row, data), sort=False)
+        except TypeError:
+            # sort was introduced in pandas 0.23
+            data_with_baseline = pd.concat((baseline_row, data))
         return data_with_baseline
 
     def get_sharpe(self, returns):
@@ -303,7 +307,13 @@ class Performance(object):
 
         returns = returns.sort_values()
 
-        return pd.concat((returns.head(top_n), returns.tail(top_n)))
+        try:
+            top_movers = pd.concat((returns.head(top_n), returns.tail(top_n)), sort=True)
+        except TypeError:
+            # sort was introduced in pandas 0.23
+            top_movers = pd.concat((returns.head(top_n), returns.tail(top_n)))
+
+        return top_movers
 
 class AggregatePerformance(Performance):
 
