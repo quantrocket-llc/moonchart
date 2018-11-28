@@ -28,11 +28,10 @@ class BaseTearsheet(object):
     """
     DEFAULT_TITLE = "Performance tear sheet"
 
-    def __init__(self, pdf_filename=None, window_size=None, max_cols_for_details=25):
-        self.window_size = window_size or (12.0, 7.5) # width, height in inches
+    def __init__(self, pdf_filename=None, figsize=None, max_cols_for_details=25):
+        self.figsize = figsize or (12.0, 16.0) # width, height in inches
         plt.rc("legend", fontsize="small")
         plt.rc("axes", axisbelow=True)
-        plt.rc("figure", autolayout=True)
         plt.rc("xtick", labelsize="small")
         plt.rc("ytick", labelsize="small")
         if pdf_filename:
@@ -65,36 +64,27 @@ class BaseTearsheet(object):
         cols = math.ceil(plot_count/rows)
         return rows, cols
 
-    @property
-    def _tight_layout_clear_suptitle(self):
-        # leave room at top for suptitle
-        return dict(rect=[0,0,1,.9])
-
     def _clear_legend(self, plot, legend_title=None):
         """
         Anchors the legend to the outside right of the plot area so you can
         see the plot.
         """
-        plot.figure.set_tight_layout({"pad":10, "h_pad":1, "w_pad":1})
         plot.legend(
             loc='center left', bbox_to_anchor=(1, 0.5), fontsize="x-small", title=legend_title)
 
-    def _create_performance_plots(self, performance, subplot, extra_label):
+    def _create_performance_plots(self, performance, subplot, extra_label, figsize=None):
         """
         Creates agg/details plots for cumulative returns, drawdowns, rolling
         Sharpe, and possibly pnl.
         """
-        if subplot == 111:
-            tight_layout = self._tight_layout_clear_suptitle
-        else:
-            tight_layout = None
+        figsize = figsize or self.figsize
 
         if isinstance(performance.cum_returns, pd.DataFrame):
             num_series = len(performance.cum_returns.columns)
             if num_series > 6:
                 sns.set_palette(sns.color_palette("hls", num_series))
 
-        fig = plt.figure("Cumulative Returns", figsize=self.window_size, tight_layout=tight_layout)
+        fig = plt.figure("Cumulative Returns", figsize=figsize)
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(subplot)
         max_return = performance.cum_returns.max(axis=0)
@@ -161,7 +151,7 @@ class BaseTearsheet(object):
             if isinstance(performance.cum_returns_with_baseline, pd.DataFrame):
                 self._clear_legend(plot)
 
-        fig = plt.figure("Drawdowns", figsize=self.window_size, tight_layout=tight_layout)
+        fig = plt.figure("Drawdowns", figsize=figsize)
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(subplot)
         plot = performance.drawdowns.plot(ax=axis, title="Drawdowns {0}".format(extra_label))
@@ -174,8 +164,7 @@ class BaseTearsheet(object):
             # calcuated based on an account balance that changes due to
             # causes other than the strategies being charted (e.g. other
             # strategies, contributions/withdrawals, etc.)
-            fig = plt.figure("Cumulative PNL", figsize=self.window_size,
-                             tight_layout=self._tight_layout_clear_suptitle)
+            fig = plt.figure("Cumulative PNL", figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
             if (
@@ -205,7 +194,7 @@ class BaseTearsheet(object):
                     self._clear_legend(plot)
 
         if len(performance.rolling_sharpe.index) > performance.rolling_sharpe_window:
-            fig = plt.figure("Rolling Sharpe", figsize=self.window_size, tight_layout=tight_layout)
+            fig = plt.figure("Rolling Sharpe", figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
             plot = performance.rolling_sharpe.plot(ax=axis, title="Rolling Sharpe ({0}-day) {1}".format(
@@ -215,7 +204,7 @@ class BaseTearsheet(object):
 
         benchmark_returns = performance.get_benchmark_returns()
         if benchmark_returns is not None:
-            fig = plt.figure("Cumulative Returns vs Benchmark", figsize=self.window_size, tight_layout=tight_layout)
+            fig = plt.figure("Cumulative Returns vs Benchmark", figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
             max_return = performance.cum_returns.max(axis=0)

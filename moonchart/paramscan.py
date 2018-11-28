@@ -112,7 +112,13 @@ class ParamscanTearsheet(BaseTearsheet):
         # Plot performance plots
         performance = Performance(returns)
         performance.fill_performance_cache()
-        self._create_performance_plots(performance, subplot=111, extra_label=" (Aggregate)")
+
+        # cut height in half since only one chart per figure
+        width, height = self.figsize
+        figsize = width, height/2
+
+        self._create_performance_plots(performance, subplot=111, extra_label=" (Aggregate)",
+                                       figsize=figsize)
 
         self._save_or_show()
 
@@ -135,8 +141,8 @@ class ParamscanTearsheet(BaseTearsheet):
 
         rows, cols = self._get_plot_dimensions(len(fields))
         # dynamically adjust window height based on number of plots
-        width = max((self.window_size[0], cols*5+2))
-        height = max((self.window_size[1], rows*2+3))
+        width = max((self.figsize[0], cols*5+2))
+        height = max((self.figsize[1], rows*2+3))
         fig = plt.figure("Parameter Scan Results", figsize=(width, height))
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
 
@@ -194,9 +200,9 @@ class ParamscanTearsheet(BaseTearsheet):
             if not fig:
                 rows, cols = self._get_plot_dimensions(num_strategies*num_fields)
                 # dynamically adjust window height based on number of plots
-                width = max((self.window_size[0], cols*5+2))
-                height = max((self.window_size[1], rows*2+3))
-                fig = plt.figure("Parameter Scan Heat Maps", figsize=(width, height), tight_layout=self._tight_layout_clear_suptitle)
+                width = max((self.figsize[0], cols*5+2))
+                height = max((self.figsize[1], rows*2+3))
+                fig = plt.figure("Parameter Scan Heat Maps", figsize=(width, height))
                 fig.suptitle(self.suptitle, **self.suptitle_kwargs)
 
             for ii, strategy in enumerate(strategies):

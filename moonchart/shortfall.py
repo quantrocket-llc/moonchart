@@ -51,17 +51,17 @@ class ShortFallTearsheet(BaseTearsheet):
             drawdowns = self.drawdowns(cum_returns)
             shortfall = cum_returns.live - cum_returns.simulated
 
-            fig = plt.figure("Cumulative Returns", figsize=self.window_size)
+            fig = plt.figure("Cumulative Returns", figsize=self.figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(rows, cols, i+1)
             cum_returns.plot(ax=axis, title=strategy)
 
-            fig = plt.figure("Drawdowns", figsize=self.window_size)
+            fig = plt.figure("Drawdowns", figsize=self.figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(rows, cols, i+1)
             drawdowns.plot(ax=axis, title=strategy)
 
-            fig = plt.figure("Shortfall", figsize=self.window_size)
+            fig = plt.figure("Shortfall", figsize=self.figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(rows, cols, i+1)
             shortfall.plot(ax=axis, title=strategy, kind="area", stacked=False)
