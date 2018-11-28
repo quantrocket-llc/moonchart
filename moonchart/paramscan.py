@@ -129,6 +129,10 @@ class ParamscanTearsheet(BaseTearsheet):
         )
         fields = OrderedDict(fields)
 
+        num_series = len(results.columns)
+        if num_series > 6:
+            sns.set_palette(sns.color_palette("hls", num_series))
+
         rows, cols = self._get_plot_dimensions(len(fields))
         # dynamically adjust window height based on number of plots
         width = max((self.window_size[0], cols*5+2))
@@ -160,6 +164,9 @@ class ParamscanTearsheet(BaseTearsheet):
                 x_axis = axis.axes.get_xaxis()
                 x_label = x_axis.get_label()
                 x_label.set_visible(False)
+
+        if num_series > 6:
+            sns.set()
 
     def _create_2d_heatmaps(self, results):
         """

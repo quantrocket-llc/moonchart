@@ -89,6 +89,11 @@ class BaseTearsheet(object):
         else:
             tight_layout = None
 
+        if isinstance(performance.cum_returns, pd.DataFrame):
+            num_series = len(performance.cum_returns.columns)
+            if num_series > 6:
+                sns.set_palette(sns.color_palette("hls", num_series))
+
         fig = plt.figure("Cumulative Returns", figsize=self.window_size, tight_layout=tight_layout)
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(subplot)
@@ -231,3 +236,6 @@ class BaseTearsheet(object):
             plot = vs_benchmark.plot(ax=axis, title="Cumulative Returns vs Benchmark {0}".format(extra_label))
             if isinstance(vs_benchmark, pd.DataFrame):
                 self._clear_legend(plot)
+
+        if isinstance(performance.cum_returns, pd.DataFrame) and num_series > 6:
+            sns.set()

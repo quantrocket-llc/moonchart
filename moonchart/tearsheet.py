@@ -308,6 +308,11 @@ class Tearsheet(BaseTearsheet):
         else:
             tight_layout = None
 
+        if isinstance(performance.returns, pd.DataFrame):
+            num_series = len(performance.returns.columns)
+            if num_series > 6:
+                sns.set_palette(sns.color_palette("hls", num_series))
+
         if performance.net_exposures is not None:
             fig = plt.figure("Net Exposures", figsize=self.window_size, tight_layout=tight_layout)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
@@ -323,6 +328,9 @@ class Tearsheet(BaseTearsheet):
             plot = performance.abs_exposures.plot(ax=axis, title="Absolute Exposures {0}".format(extra_label))
             if isinstance(performance.abs_exposures, pd.DataFrame):
                 self._clear_legend(plot)
+
+        if isinstance(performance.returns, pd.DataFrame) and num_series > 6:
+            sns.set()
 
     def _create_detailed_exposures_bar_charts(self, performance, extra_label):
 
@@ -378,6 +386,11 @@ class Tearsheet(BaseTearsheet):
         else:
             tight_layout = None
 
+        if isinstance(performance.returns, pd.DataFrame):
+            num_series = len(performance.cum_returns.columns)
+            if num_series > 6:
+                sns.set_palette(sns.color_palette("hls", num_series))
+
         grouped_returns = performance.returns.groupby(performance.returns.index.year)
         cagrs_by_year = grouped_returns.apply(lambda x: performance.get_cagr(
             performance.get_cum_returns(x)))
@@ -396,6 +409,9 @@ class Tearsheet(BaseTearsheet):
         plot = sharpes_by_year.plot(ax=axis, kind="bar", title="Sharpe by Year {0}".format(extra_label))
         if isinstance(sharpes_by_year, pd.DataFrame):
             self._clear_legend(plot)
+
+        if isinstance(performance.returns, pd.DataFrame) and num_series > 6:
+            sns.set()
 
     def _get_agg_stats_text(self, agg_stats, title="Aggregate Performance"):
         """
