@@ -34,6 +34,9 @@ class Performance(object):
     abs_exposures : DataFrame, optional
         a Dataframe of absolute exposure (ignoring hedging)
 
+    total_holdings : DataFrame, optional
+        a Dataframe of the number of holdings
+
     commissions : DataFrame, optional
         a DataFrame of commissions, in the base currency
 
@@ -62,6 +65,7 @@ class Performance(object):
         pnl=None,
         net_exposures=None,
         abs_exposures=None,
+        total_holdings=None,
         commissions=None,
         commissions_pct=None,
         slippages=None,
@@ -79,6 +83,7 @@ class Performance(object):
         self.pnl = pnl
         self.net_exposures = net_exposures
         self.abs_exposures = abs_exposures
+        self.total_holdings = total_holdings
         self.commissions = commissions
         self.commissions_pct = commissions_pct
         self.slippages = slippages
@@ -109,6 +114,8 @@ class Performance(object):
             kwargs["net_exposures"] = results.loc["NetExposure"].astype(np.float64)
         if "AbsExposure" in fields:
             kwargs["abs_exposures"] = results.loc["AbsExposure"].astype(np.float64)
+        if "TotalHoldings" in fields:
+            kwargs["total_holdings"] = results.loc["TotalHoldings"].astype(np.float64)
         if "Commission" in fields:
             kwargs["commissions_pct"] = results.loc["Commission"].astype(np.float64)
         if "Slippage" in fields:
@@ -131,6 +138,8 @@ class Performance(object):
             kwargs["net_exposures"] = results.loc["NetExposure"].astype(np.float64)
         if "AbsExposure" in fields:
             kwargs["abs_exposures"] = results.loc["AbsExposure"].astype(np.float64)
+        if "TotalHoldings" in fields:
+            kwargs["total_holdings"] = results.loc["TotalHoldings"].astype(np.float64)
         if "Commission" in fields:
             kwargs["commissions_pct"] = results.loc["Commission"].astype(np.float64)
         if "CommissionAmount" in fields:
@@ -254,6 +263,12 @@ class Performance(object):
         """
         return exposures.mean()
 
+    def get_avg_total_holdings(self, total_holdings):
+        """
+        Calculates the avg exposure.
+        """
+        return total_holdings.mean()
+
     def get_normalized_cagr(self, cagr, exposure):
         """
         Returns the CAGR per 1x exposure, a measure of the strategy's
@@ -343,3 +358,6 @@ class AggregatePerformance(Performance):
 
         if performance.abs_exposures is not None:
             self.abs_exposures = performance.abs_exposures.sum(axis=1)
+
+        if performance.total_holdings is not None:
+            self.total_holdings = performance.total_holdings.sum(axis=1)

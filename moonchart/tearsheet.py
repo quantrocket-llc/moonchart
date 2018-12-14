@@ -330,7 +330,7 @@ class Tearsheet(BaseTearsheet):
             fig = plt.figure("Net Exposures", figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
-            plot = performance.net_exposures.plot(ax=axis, title="Net Exposures {0}".format(extra_label))
+            plot = performance.net_exposures.round(2).plot(ax=axis, title="Net Exposures {0}".format(extra_label))
             if isinstance(performance.net_exposures, pd.DataFrame):
                 self._clear_legend(plot)
 
@@ -338,8 +338,16 @@ class Tearsheet(BaseTearsheet):
             fig = plt.figure("Absolute Exposures", figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
-            plot = performance.abs_exposures.plot(ax=axis, title="Absolute Exposures {0}".format(extra_label))
+            plot = performance.abs_exposures.round(2).plot(ax=axis, title="Absolute Exposures {0}".format(extra_label))
             if isinstance(performance.abs_exposures, pd.DataFrame):
+                self._clear_legend(plot)
+
+        if performance.total_holdings is not None:
+            fig = plt.figure("Total Holdings", figsize=figsize)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+            axis = fig.add_subplot(subplot)
+            plot = performance.total_holdings.plot(ax=axis, title="Total Holdings {0}".format(extra_label))
+            if isinstance(performance.total_holdings, pd.DataFrame):
                 self._clear_legend(plot)
 
         if isinstance(performance.returns, pd.DataFrame) and num_series > 6:
@@ -374,6 +382,14 @@ class Tearsheet(BaseTearsheet):
             axis = fig.add_subplot(111)
             norm_cagrs.sort_values(inplace=False).plot(
                 ax=axis, kind="bar", title="Normalized CAGR (CAGR/Exposure) {0}".format(extra_label))
+
+        if performance.total_holdings is not None:
+            fig = plt.figure("Avg Total Holdings {0}".format(extra_label), figsize=figsize)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+            avg_total_holdings = performance.get_avg_total_holdings(performance.total_holdings)
+            axis = fig.add_subplot(111)
+            avg_total_holdings.sort_values(inplace=False).plot(
+                ax=axis, kind="bar", title="Avg Total Holdings {0}".format(extra_label))
 
     def create_annual_breakdown_tearsheet(self, performance, agg_performance):
         """
