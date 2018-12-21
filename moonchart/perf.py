@@ -368,3 +368,6 @@ class AggregateDailyPerformance(DailyPerformance):
 
         if performance.total_holdings is not None:
             self.total_holdings = performance.total_holdings.sum(axis=1)
+
+        if performance.trades is not None:
+            self.trades = performance.trades.sum(axis=1)

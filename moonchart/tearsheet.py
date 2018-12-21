@@ -353,6 +353,15 @@ class Tearsheet(BaseTearsheet):
             if isinstance(performance.total_holdings, pd.DataFrame):
                 self._clear_legend(plot)
 
+        if performance.trades is not None:
+            fig = plt.figure("Turnover", figsize=figsize)
+            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+            axis = fig.add_subplot(subplot)
+            turnover = performance.trades.abs()
+            plot = turnover.plot(ax=axis, title="Turnover {0}".format(extra_label))
+            if isinstance(turnover, pd.DataFrame):
+                self._clear_legend(plot)
+
         if isinstance(performance.returns, pd.DataFrame) and num_series > 6:
             sns.set()
 
