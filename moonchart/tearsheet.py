@@ -16,9 +16,10 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from collections import OrderedDict
+from quantrocket.moonshot import read_moonshot_csv, intraday_to_daily
 import matplotlib.pyplot as plt
 import warnings
-from .perf import Performance, AggregatePerformance
+from .perf import DailyPerformance, AggregateDailyPerformance
 from .base import BaseTearsheet
 
 class Tearsheet(BaseTearsheet):
@@ -52,7 +53,7 @@ class Tearsheet(BaseTearsheet):
         -------
         None
         """
-        performance = Performance.from_moonshot(results)
+        performance = DailyPerformance.from_moonshot(results)
         return self.create_full_tearsheet(performance, **kwargs)
 
     def from_moonshot_csv(self, filepath_or_buffer, **kwargs):
@@ -68,9 +69,11 @@ class Tearsheet(BaseTearsheet):
         -------
         None
         """
-        results = pd.read_csv(filepath_or_buffer,
-                              parse_dates=["Date"],
-                              index_col=["Field","Date"])
+        results = read_moonshot_csv(filepath_or_buffer)
+
+        if "Time" in results.index.names:
+            results = intraday_to_daily(results)
+
         return self.from_moonshot(results, **kwargs)
 
     def from_pnl(self, results, **kwargs):
@@ -86,7 +89,7 @@ class Tearsheet(BaseTearsheet):
         -------
         None
         """
-        performance = Performance.from_pnl(results)
+        performance = DailyPerformance.from_pnl(results)
         return self.create_full_tearsheet(performance, **kwargs)
 
     def from_pnl_csv(self, filepath_or_buffer, **kwargs):
@@ -122,7 +125,7 @@ class Tearsheet(BaseTearsheet):
         Parameters
         ----------
         performance : instance
-            Performance instance
+            DailyPerformance instance
 
         include_exposures : bool
             whether to include a tear sheet of market exposure
@@ -146,7 +149,7 @@ class Tearsheet(BaseTearsheet):
         else:
             self._set_title_from_performance(performance)
 
-        agg_performance = AggregatePerformance(performance)
+        agg_performance = AggregateDailyPerformance(performance)
 
         num_cols = len(performance.returns.columns)
         if num_cols > self.max_cols_for_details:

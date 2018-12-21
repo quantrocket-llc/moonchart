@@ -17,7 +17,7 @@ import seaborn as sns
 from collections import OrderedDict
 import matplotlib
 import matplotlib.pyplot as plt
-from .perf import Performance
+from .perf import DailyPerformance
 from .base import BaseTearsheet
 
 class ParamscanTearsheet(BaseTearsheet):
@@ -110,7 +110,7 @@ class ParamscanTearsheet(BaseTearsheet):
             self._create_1d_bar_charts(results)
 
         # Plot performance plots
-        performance = Performance(returns)
+        performance = DailyPerformance(returns)
         performance.fill_performance_cache()
 
         # cut height in half since only one chart per figure

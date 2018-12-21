@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from .exceptions import InsufficientData
 
-class Performance(object):
+class DailyPerformance(object):
     """
     Class for storing performance attributes and calculating derived statistics.
 
@@ -36,6 +36,9 @@ class Performance(object):
 
     total_holdings : DataFrame, optional
         a Dataframe of the number of holdings
+
+    trades : DataFrame, optional
+        a DataFrame of trades, that is, changes to positions
 
     commissions : DataFrame, optional
         a DataFrame of commissions, in the base currency
@@ -66,6 +69,7 @@ class Performance(object):
         net_exposures=None,
         abs_exposures=None,
         total_holdings=None,
+        trades=None,
         commissions=None,
         commissions_pct=None,
         slippages=None,
@@ -84,6 +88,7 @@ class Performance(object):
         self.net_exposures = net_exposures
         self.abs_exposures = abs_exposures
         self.total_holdings = total_holdings
+        self.trades = trades
         self.commissions = commissions
         self.commissions_pct = commissions_pct
         self.slippages = slippages
@@ -105,30 +110,32 @@ class Performance(object):
     @classmethod
     def from_moonshot(cls, results):
         """
-        Creates a Performance instance from a moonshot backtest results DataFrame.
+        Creates a DailyPerformance instance from a moonshot backtest results DataFrame.
         """
         fields = results.index.get_level_values("Field").unique()
         kwargs = {}
-        kwargs["returns"] = results.loc["Return"].astype(np.float64)
-        if "NetExposure" in fields:
-            kwargs["net_exposures"] = results.loc["NetExposure"].astype(np.float64)
-        if "AbsExposure" in fields:
-            kwargs["abs_exposures"] = results.loc["AbsExposure"].astype(np.float64)
+        kwargs["returns"] = results.loc["Return"]
+        if "Position" in fields:
+            kwargs["net_exposures"] = results.loc["Position"]
+        if "AbsPosition" in fields:
+            kwargs["abs_exposures"] = results.loc["AbsPosition"]
         if "TotalHoldings" in fields:
-            kwargs["total_holdings"] = results.loc["TotalHoldings"].astype(np.float64)
+            kwargs["total_holdings"] = results.loc["TotalHoldings"]
+        if "Trade" in fields:
+            kwargs["trades"] = results.loc["Trade"]
         if "Commission" in fields:
-            kwargs["commissions_pct"] = results.loc["Commission"].astype(np.float64)
+            kwargs["commissions_pct"] = results.loc["Commission"]
         if "Slippage" in fields:
-            kwargs["slippages"] = results.loc["Slippage"].astype(np.float64)
+            kwargs["slippages"] = results.loc["Slippage"]
         if "Benchmark" in fields:
-            kwargs["benchmark"] = results.loc["Benchmark"].astype(np.float64)
+            kwargs["benchmark"] = results.loc["Benchmark"]
 
         return cls(**kwargs)
 
     @classmethod
     def from_pnl(cls, results):
         """
-        Creates a Performance instance from a PNL results DataFrame.
+        Creates a DailyPerformance instance from a PNL results DataFrame.
         """
         fields = results.index.get_level_values("Field").unique()
         kwargs = {}
@@ -330,11 +337,11 @@ class Performance(object):
 
         return top_movers
 
-class AggregatePerformance(Performance):
+class AggregateDailyPerformance(DailyPerformance):
 
     def __init__(self, performance):
 
-        super(AggregatePerformance, self).__init__(
+        super(AggregateDailyPerformance, self).__init__(
             performance.returns.sum(axis=1),
             riskfree=performance.riskfree,
             compound_returns=performance.compound_returns,
