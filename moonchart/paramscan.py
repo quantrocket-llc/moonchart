@@ -132,7 +132,7 @@ class ParamscanTearsheet(BaseTearsheet):
             ("MaxDrawdown", "Max Drawdown"),
             ("AbsExposure", "Absolute Exposure"),
             ("NormalizedCagr", "Normalized CAGR (CAGR/Exposure)"),
-            ("TotalHoldings", "Avg Total Holdings"),
+            ("TotalHoldings", "Avg Daily Holdings"),
         )
         fields = OrderedDict(fields)
 
@@ -186,7 +186,7 @@ class ParamscanTearsheet(BaseTearsheet):
             ("MaxDrawdown", "Max DD"),
             ("AbsExposure", "Abs Exposure"),
             ("NormalizedCagr", "Normalized CAGR"),
-            ("TotalHoldings", "Avg Total Holdings"),
+            ("TotalHoldings", "Avg Daily Holdings"),
         )
         fields = OrderedDict(fields)
 
