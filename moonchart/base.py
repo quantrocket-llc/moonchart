@@ -29,7 +29,7 @@ class BaseTearsheet(object):
     DEFAULT_TITLE = "Performance tear sheet"
 
     def __init__(self, pdf_filename=None, figsize=None, max_cols_for_details=25):
-        self.figsize = figsize or (12.0, 16.0) # width, height in inches
+        self.figsize = figsize or (16.0, 16.0) # width, height in inches
         plt.rc("legend", fontsize="small")
         plt.rc("axes", axisbelow=True)
         plt.rc("xtick", labelsize="small")
