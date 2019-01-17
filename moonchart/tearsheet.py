@@ -56,7 +56,8 @@ class Tearsheet(BaseTearsheet):
         performance = DailyPerformance.from_moonshot(results)
         return self.create_full_tearsheet(performance, **kwargs)
 
-    def from_moonshot_csv(self, filepath_or_buffer, **kwargs):
+    @classmethod
+    def from_moonshot_csv(cls, filepath_or_buffer, **kwargs):
         """
         Creates a full tear sheet from a moonshot backtest results CSV.
 
@@ -74,7 +75,7 @@ class Tearsheet(BaseTearsheet):
         if "Time" in results.index.names:
             results = intraday_to_daily(results)
 
-        return self.from_moonshot(results, **kwargs)
+        return cls(**kwargs).from_moonshot(results)
 
     def from_pnl(self, results, **kwargs):
         """
@@ -92,7 +93,8 @@ class Tearsheet(BaseTearsheet):
         performance = DailyPerformance.from_pnl(results)
         return self.create_full_tearsheet(performance, **kwargs)
 
-    def from_pnl_csv(self, filepath_or_buffer, **kwargs):
+    @classmethod
+    def from_pnl_csv(cls, filepath_or_buffer, **kwargs):
         """
         Creates a full tear sheet from a pnl CSV.
 
@@ -108,7 +110,7 @@ class Tearsheet(BaseTearsheet):
         results = pd.read_csv(filepath_or_buffer,
                               parse_dates=["Date"],
                               index_col=["Field","Date"])
-        return self.from_pnl(results, **kwargs)
+        return cls(**kwargs).from_pnl(results)
 
     def create_full_tearsheet(
         self,

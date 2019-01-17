@@ -55,7 +55,8 @@ class ParamscanTearsheet(BaseTearsheet):
 
         return self.create_full_tearsheet(results, **kwargs)
 
-    def from_moonshot_csv(self, filepath_or_buffer, **kwargs):
+    @classmethod
+    def from_moonshot_csv(cls, filepath_or_buffer, **kwargs):
         """
         Creates a full tear sheet from a moonshot paramscan results CSV.
 
@@ -69,7 +70,7 @@ class ParamscanTearsheet(BaseTearsheet):
         None
         """
         results = pd.read_csv(filepath_or_buffer)
-        return self.from_moonshot(results, **kwargs)
+        return cls(**kwargs).from_moonshot(results)
 
     def create_full_tearsheet(self, results, heatmap_2d=True):
         """
