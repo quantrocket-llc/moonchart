@@ -19,6 +19,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from .perf import DailyPerformance
 from .base import BaseTearsheet
+from .exceptions import MoonchartError
 
 class ParamscanTearsheet(BaseTearsheet):
 
@@ -37,6 +38,10 @@ class ParamscanTearsheet(BaseTearsheet):
         -------
         None
         """
+        if "StrategyOrDate" not in results.columns:
+            raise MoonchartError(
+                "DataFrame contains no 'StrategyOrDate' column, "
+                "are you sure this came from a Moonshot parameter scan?")
         idx_cols=list(results.columns)
         idx_cols.remove("Value")
         results = results.set_index(idx_cols)

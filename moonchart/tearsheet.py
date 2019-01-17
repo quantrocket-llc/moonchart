@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import warnings
 from .perf import DailyPerformance, AggregateDailyPerformance
 from .base import BaseTearsheet
+from .exceptions import MoonchartError
 
 class Tearsheet(BaseTearsheet):
     """
@@ -70,7 +71,18 @@ class Tearsheet(BaseTearsheet):
         -------
         None
         """
-        results = read_moonshot_csv(filepath_or_buffer)
+        try:
+            results = read_moonshot_csv(filepath_or_buffer)
+        except ValueError as e:
+            # "ValueError: 'Date' is not in list" might mean the user passed
+            # a paramscan csv by mistake
+            if "Date" not in repr(e):
+                raise
+            results = pd.read_csv(filepath_or_buffer)
+            if "StrategyOrDate" in results.columns:
+                raise MoonchartError("this is a parameter scan CSV, please use ParamscanTearsheet.from_moonshot_csv")
+            else:
+                raise
 
         if "Time" in results.index.names:
             results = intraday_to_daily(results)
