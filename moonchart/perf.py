@@ -15,6 +15,7 @@
 import numpy as np
 import pandas as pd
 from .exceptions import InsufficientData
+from quantrocket.moonshot import read_moonshot_csv, intraday_to_daily
 
 class DailyPerformance(object):
     """
@@ -96,16 +97,15 @@ class DailyPerformance(object):
         self.riskfree = riskfree
         self.rolling_sharpe_window = rolling_sharpe_window
         self.compound_returns = compound_returns
-        self.returns_with_baseline = None
-        self.cum_returns = None
-        self.cum_returns_with_baseline = None
-        self.sharpe = None
-        self.rolling_sharpe = None
-        self.cagr = None
-        self.drawdowns = None
-        self.max_drawdown = None
-        self.cum_pnl = None
-        self._performance_cache_filled = False
+        self._returns_with_baseline = None
+        self._cum_returns = None
+        self._cum_returns_with_baseline = None
+        self._sharpe = None
+        self._rolling_sharpe = None
+        self._cagr = None
+        self._drawdowns = None
+        self._max_drawdown = None
+        self._cum_pnl = None
 
     @classmethod
     def from_moonshot(cls, results):
@@ -133,6 +133,28 @@ class DailyPerformance(object):
         return cls(**kwargs)
 
     @classmethod
+    def from_moonshot_csv(cls, filepath_or_buffer):
+        """
+        Creates a DailyPerformance instance from a moonshot backtest results
+        CSV.
+
+        Parameters
+        ----------
+        filepath_or_buffer : str or file-like object
+            filepath or file-like object of the CSV
+
+        Returns
+        -------
+        DailyPerformance
+        """
+        results = read_moonshot_csv(filepath_or_buffer)
+
+        if "Time" in results.index.names:
+            results = intraday_to_daily(results)
+
+        return cls.from_moonshot(results)
+
+    @classmethod
     def from_pnl(cls, results):
         """
         Creates a DailyPerformance instance from a PNL results DataFrame.
@@ -156,22 +178,66 @@ class DailyPerformance(object):
 
         return cls(**kwargs)
 
-    def fill_performance_cache(self):
-        if self._performance_cache_filled:
-            return
+    @property
+    def cum_returns(self):
 
-        self.cum_returns = self.get_cum_returns(self.returns)
-        self.cum_returns_with_baseline = self.get_cum_returns(
-            self.with_baseline(self.returns))
-        self.cagr = self.get_cagr(self.cum_returns)
-        self.sharpe = self.get_sharpe(self.returns)
-        self.rolling_sharpe = self.get_rolling_sharpe(self.returns)
-        self.drawdowns = self.get_drawdowns(self.cum_returns)
-        self.max_drawdown = self.get_max_drawdown(self.drawdowns)
-        if self.pnl is not None:
-            self.cum_pnl = self.pnl.cumsum()
+        if self._cum_returns is None:
+            self._cum_returns = self.get_cum_returns(self.returns)
 
-        self._performance_cache_filled = True
+        return self._cum_returns
+
+    @property
+    def cum_returns_with_baseline(self):
+        """
+        Cumulative returns, with a leading 0 return.
+        """
+        if self._cum_returns_with_baseline is None:
+            self._cum_returns_with_baseline = self.get_cum_returns(
+                self.with_baseline(self.returns))
+
+        return self._cum_returns_with_baseline
+
+    @property
+    def cagr(self):
+        if self._cagr is None:
+            self._cagr = self.get_cagr(self.cum_returns)
+
+        return self._cagr
+
+    @property
+    def sharpe(self):
+        if self._sharpe is None:
+            self._sharpe = self.get_sharpe(self.returns)
+
+        return self._sharpe
+
+    @property
+    def rolling_sharpe(self):
+        if self._rolling_sharpe is None:
+            self._rolling_sharpe = self.get_rolling_sharpe(self.returns)
+
+        return self._rolling_sharpe
+
+    @property
+    def drawdowns(self):
+        if self._drawdowns is None:
+            self._drawdowns = self.get_drawdowns(self.cum_returns)
+
+        return self._drawdowns
+
+    @property
+    def max_drawdown(self):
+        if self._max_drawdown is None:
+            self._max_drawdown = self.get_max_drawdown(self.drawdowns)
+
+        return self._max_drawdown
+
+    @property
+    def cum_pnl(self):
+        if self._cum_pnl is None and self.pnl is not None:
+            self._cum_pnl = self.pnl.cumsum()
+
+        return self._cum_pnl
 
     def with_baseline(self, data):
         """

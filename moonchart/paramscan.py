@@ -111,7 +111,6 @@ class ParamscanTearsheet(BaseTearsheet):
 
         # Plot performance plots
         performance = DailyPerformance(returns)
-        performance.fill_performance_cache()
 
         # cut height in half since only one chart per figure
         width, height = self.figsize

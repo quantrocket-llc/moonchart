@@ -175,13 +175,8 @@ class Tearsheet(BaseTearsheet):
         """
         Creates a performance tearsheet.
         """
-        agg_performance.fill_performance_cache()
-
         num_cols = len(performance.returns.columns)
         show_details = num_cols > 1 and num_cols <= self.max_cols_for_details
-
-        if show_details:
-            performance.fill_performance_cache()
 
         self._create_agg_performance_textbox(agg_performance)
 
@@ -276,12 +271,8 @@ class Tearsheet(BaseTearsheet):
         """
         Create a tearsheet of market exposure.
         """
-        agg_performance.fill_performance_cache()
-
         num_cols = len(performance.returns.columns)
         show_details = num_cols > 1 and num_cols <= self.max_cols_for_details
-        if show_details:
-            performance.fill_performance_cache()
 
         self._create_agg_exposures_textbox(agg_performance)
 
@@ -407,12 +398,8 @@ class Tearsheet(BaseTearsheet):
         """
         Creates agg/detailed bar charts showing CAGR and Sharpe by year.
         """
-        agg_performance.fill_performance_cache()
-
         num_cols = len(performance.returns.columns)
         show_details = num_cols > 1 and num_cols <= self.max_cols_for_details
-        if show_details:
-            performance.fill_performance_cache()
 
         width, height = self.figsize
         # cut height in half if not showing details
