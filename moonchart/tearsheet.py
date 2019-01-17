@@ -339,6 +339,7 @@ class Tearsheet(BaseTearsheet):
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
             plot = performance.net_exposures.round(2).plot(ax=axis, title="Net Exposures {0}".format(extra_label))
+            axis.set_ylabel("Proportion of capital")
             if isinstance(performance.net_exposures, pd.DataFrame):
                 self._clear_legend(plot)
 
@@ -347,14 +348,16 @@ class Tearsheet(BaseTearsheet):
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
             plot = performance.abs_exposures.round(2).plot(ax=axis, title="Absolute Exposures {0}".format(extra_label))
+            axis.set_ylabel("Proportion of capital")
             if isinstance(performance.abs_exposures, pd.DataFrame):
                 self._clear_legend(plot)
 
         if performance.total_holdings is not None:
-            fig = plt.figure("Total Holdings", figsize=figsize)
+            fig = plt.figure("Daily Holdings", figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
-            plot = performance.total_holdings.plot(ax=axis, title="Total Holdings {0}".format(extra_label))
+            plot = performance.total_holdings.plot(ax=axis, title="Daily Holdings {0}".format(extra_label))
+            axis.set_ylabel("Number of holdings")
             if isinstance(performance.total_holdings, pd.DataFrame):
                 self._clear_legend(plot)
 
@@ -364,6 +367,7 @@ class Tearsheet(BaseTearsheet):
             axis = fig.add_subplot(subplot)
             turnover = performance.trades.abs()
             plot = turnover.plot(ax=axis, title="Turnover {0}".format(extra_label))
+            axis.set_ylabel("Proportion of capital")
             if isinstance(turnover, pd.DataFrame):
                 self._clear_legend(plot)
 
@@ -383,6 +387,7 @@ class Tearsheet(BaseTearsheet):
             axis = fig.add_subplot(111)
             avg_abs_exposures.sort_values(inplace=False).plot(
                 ax=axis, kind="bar", title="Avg Absolute Exposure {0}".format(extra_label))
+            axis.set_ylabel("Proportion of capital")
 
         if performance.net_exposures is not None:
             fig = plt.figure("Avg Net Exposure {0}".format(extra_label), figsize=figsize)
@@ -391,6 +396,7 @@ class Tearsheet(BaseTearsheet):
             axis = fig.add_subplot(111)
             avg_net_exposures.sort_values(inplace=False).plot(
             ax=axis, kind="bar", title="Avg Net Exposure {0}".format(extra_label))
+            axis.set_ylabel("Proportion of capital")
 
         if performance.abs_exposures is not None:
             norm_cagrs = performance.get_normalized_cagr(performance.cagr, avg_abs_exposures)
@@ -399,6 +405,7 @@ class Tearsheet(BaseTearsheet):
             axis = fig.add_subplot(111)
             norm_cagrs.sort_values(inplace=False).plot(
                 ax=axis, kind="bar", title="Normalized CAGR (CAGR/Exposure) {0}".format(extra_label))
+            axis.set_ylabel("Proportion of capital")
 
         if performance.total_holdings is not None:
             fig = plt.figure("Avg Daily Holdings {0}".format(extra_label), figsize=figsize)
@@ -407,6 +414,7 @@ class Tearsheet(BaseTearsheet):
             axis = fig.add_subplot(111)
             avg_total_holdings.sort_values(inplace=False).plot(
                 ax=axis, kind="bar", title="Avg Daily Holdings {0}".format(extra_label))
+            axis.set_ylabel("Number of holdings")
 
     def create_annual_breakdown_tearsheet(self, performance, agg_performance):
         """
