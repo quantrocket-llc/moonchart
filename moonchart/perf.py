@@ -15,6 +15,7 @@
 import numpy as np
 import pandas as pd
 from .exceptions import InsufficientData
+from .utils import trim_outliers
 from quantrocket.moonshot import read_moonshot_csv, intraday_to_daily
 
 class DailyPerformance(object):
@@ -61,6 +62,9 @@ class DailyPerformance(object):
 
     rolling_sharpe_window : int, optional
         compute rolling Sharpe over this many periods (default 200)
+
+    trim_outliers: int or float, optional
+        discard returns that are more than this many standard deviations from the mean
     """
 
     def __init__(
@@ -77,7 +81,8 @@ class DailyPerformance(object):
         benchmark=None,
         riskfree=0,
         compound_returns=True,
-        rolling_sharpe_window=200
+        rolling_sharpe_window=200,
+        trim_outliers=None
         ):
 
         self.returns = returns
@@ -85,6 +90,8 @@ class DailyPerformance(object):
             raise InsufficientData(
                 "Moonchart needs at least 2 dates to analyze performance, "
                 "but returns DataFrame has length {0}".format(len(self.returns.index)))
+        if trim_outliers:
+            self.returns = trim_outliers(returns, z_score=trim_outliers)
         self.pnl = pnl
         self.net_exposures = net_exposures
         self.abs_exposures = abs_exposures
@@ -97,9 +104,7 @@ class DailyPerformance(object):
         self.riskfree = riskfree
         self.rolling_sharpe_window = rolling_sharpe_window
         self.compound_returns = compound_returns
-        self._returns_with_baseline = None
         self._cum_returns = None
-        self._cum_returns_with_baseline = None
         self._sharpe = None
         self._rolling_sharpe = None
         self._cagr = None
@@ -108,10 +113,17 @@ class DailyPerformance(object):
         self._cum_pnl = None
 
     @classmethod
-    def from_moonshot(cls, results):
+    def _from_moonshot(cls, results,
+                       trim_outliers=None,
+                       riskfree=0,
+                       compound_returns=True,
+                       rolling_sharpe_window=200):
         """
         Creates a DailyPerformance instance from a moonshot backtest results DataFrame.
         """
+        if "Time" in results.index.names:
+            results = intraday_to_daily(results)
+
         fields = results.index.get_level_values("Field").unique()
         kwargs = {}
         kwargs["returns"] = results.loc["Return"]
@@ -133,7 +145,11 @@ class DailyPerformance(object):
         return cls(**kwargs)
 
     @classmethod
-    def from_moonshot_csv(cls, filepath_or_buffer):
+    def from_moonshot_csv(cls, filepath_or_buffer,
+                          trim_outliers=None,
+                          riskfree=0,
+                          compound_returns=True,
+                          rolling_sharpe_window=200):
         """
         Creates a DailyPerformance instance from a moonshot backtest results
         CSV.
@@ -143,19 +159,32 @@ class DailyPerformance(object):
         filepath_or_buffer : str or file-like object
             filepath or file-like object of the CSV
 
+        trim_outliers: int or float, optional
+            discard returns that are more than this many standard deviations from the mean
+
+        riskfree : float, optional
+            the riskfree rate (default 0)
+
+        compound_returns : bool
+             True for compound/geometric returns, False for arithmetic returns (default True)
+
+        rolling_sharpe_window : int, optional
+            compute rolling Sharpe over this many periods (default 200)
+
         Returns
         -------
         DailyPerformance
         """
         results = read_moonshot_csv(filepath_or_buffer)
 
-        if "Time" in results.index.names:
-            results = intraday_to_daily(results)
-
-        return cls.from_moonshot(results)
+        return cls._from_moonshot(
+            results, trim_outliers=trim_outliers,
+            riskfree=riskfree,
+            compound_returns=compound_returns,
+            rolling_sharpe_window=rolling_sharpe_window)
 
     @classmethod
-    def from_pnl(cls, results):
+    def _from_pnl(cls, results):
         """
         Creates a DailyPerformance instance from a PNL results DataFrame.
         """
@@ -185,17 +214,6 @@ class DailyPerformance(object):
             self._cum_returns = self.get_cum_returns(self.returns)
 
         return self._cum_returns
-
-    @property
-    def cum_returns_with_baseline(self):
-        """
-        Cumulative returns, with a leading 0 return.
-        """
-        if self._cum_returns_with_baseline is None:
-            self._cum_returns_with_baseline = self.get_cum_returns(
-                self.with_baseline(self.returns))
-
-        return self._cum_returns_with_baseline
 
     @property
     def cagr(self):
@@ -238,23 +256,6 @@ class DailyPerformance(object):
             self._cum_pnl = self.pnl.cumsum()
 
         return self._cum_pnl
-
-    def with_baseline(self, data):
-        """
-        Adds an initial period with a return of 0, as a baseline.
-        """
-        period_length = data.index[1] - data.index[0]
-        prior_period = data.index[0] - period_length
-        if isinstance(data, pd.DataFrame):
-            baseline_row = pd.DataFrame(0, index=[prior_period], columns=data.columns)
-        else:
-            baseline_row = pd.Series(0, index=[prior_period], name=data.name)
-        try:
-            data_with_baseline = pd.concat((baseline_row, data), sort=False)
-        except TypeError:
-            # sort was introduced in pandas 0.23
-            data_with_baseline = pd.concat((baseline_row, data))
-        return data_with_baseline
 
     def get_sharpe(self, returns):
         """

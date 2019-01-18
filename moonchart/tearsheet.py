@@ -22,6 +22,7 @@ import warnings
 from .perf import DailyPerformance, AggregateDailyPerformance
 from .base import BaseTearsheet
 from .exceptions import MoonchartError
+from .utils import with_baseline
 
 class Tearsheet(BaseTearsheet):
     """
@@ -41,24 +42,53 @@ class Tearsheet(BaseTearsheet):
         self.suptitle = "{0} - {1}: {2}".format(
             min_date, max_date, cols)
 
-    def from_moonshot(self, results, **kwargs):
+    def _from_moonshot(self,
+                       results,
+                       include_exposures_tearsheet=True,
+                       include_annual_breakdown_tearsheet=True,
+                       montecarlo_cycles=None,
+                       montecarlo_preaggregate=True,
+                       trim_outliers=None,
+                       riskfree=0,
+                       compound_returns=True,
+                       rolling_sharpe_window=200,
+                       title=None):
         """
         Creates a full tear sheet from a moonshot backtest results DataFrame.
-
-        Parameters
-        ----------
-        results : DataFrame
-            multiindex (Field, Date) DataFrame of backtest results
-
-        Returns
-        -------
-        None
         """
-        performance = DailyPerformance.from_moonshot(results)
-        return self.create_full_tearsheet(performance, **kwargs)
+        if "Time" in results.index.names:
+            results = intraday_to_daily(results)
+
+        performance = DailyPerformance._from_moonshot(
+            results,
+            trim_outliers=trim_outliers,
+            riskfree=riskfree,
+            compound_returns=compound_returns,
+            rolling_sharpe_window=rolling_sharpe_window)
+
+        return self.create_full_tearsheet(
+            performance,
+            include_exposures_tearsheet=include_exposures_tearsheet,
+            include_annual_breakdown_tearsheet=include_annual_breakdown_tearsheet,
+            montecarlo_cycles=montecarlo_cycles,
+            montecarlo_preaggregate=montecarlo_preaggregate,
+            title=title)
 
     @classmethod
-    def from_moonshot_csv(cls, filepath_or_buffer, **kwargs):
+    def from_moonshot_csv(cls, filepath_or_buffer,
+                          figsize=None,
+                          max_cols_for_details=25,
+                          pdf_filename=None,
+                          include_exposures_tearsheet=True,
+                          include_annual_breakdown_tearsheet=True,
+                          montecarlo_cycles=None,
+                          montecarlo_preaggregate=True,
+                          trim_outliers=None,
+                          riskfree=0,
+                          compound_returns=True,
+                          rolling_sharpe_window=200,
+                          title=None,
+                          ):
         """
         Creates a full tear sheet from a moonshot backtest results CSV.
 
@@ -84,12 +114,23 @@ class Tearsheet(BaseTearsheet):
             else:
                 raise
 
-        if "Time" in results.index.names:
-            results = intraday_to_daily(results)
+        t = cls(figsize=figsize,
+                max_cols_for_details=max_cols_for_details,
+                pdf_filename=pdf_filename)
 
-        return cls(**kwargs).from_moonshot(results)
+        return t._from_moonshot(
+            results,
+            include_exposures_tearsheet=include_exposures_tearsheet,
+            include_annual_breakdown_tearsheet=include_annual_breakdown_tearsheet,
+            montecarlo_cycles=montecarlo_cycles,
+            montecarlo_preaggregate=montecarlo_preaggregate,
+            trim_outliers=trim_outliers,
+            riskfree=riskfree,
+            compound_returns=compound_returns,
+            rolling_sharpe_window=rolling_sharpe_window,
+            title=title)
 
-    def from_pnl(self, results, **kwargs):
+    def _from_pnl(self, results, **kwargs):
         """
         Creates a full tear sheet from a pnl DataFrame.
 
@@ -102,7 +143,7 @@ class Tearsheet(BaseTearsheet):
         -------
         None
         """
-        performance = DailyPerformance.from_pnl(results)
+        performance = DailyPerformance._from_pnl(results)
         return self.create_full_tearsheet(performance, **kwargs)
 
     @classmethod
@@ -122,14 +163,14 @@ class Tearsheet(BaseTearsheet):
         results = pd.read_csv(filepath_or_buffer,
                               parse_dates=["Date"],
                               index_col=["Field","Date"])
-        return cls(**kwargs).from_pnl(results)
+        return cls(**kwargs)._from_pnl(results)
 
     def create_full_tearsheet(
         self,
         performance,
         include_exposures_tearsheet=True,
         include_annual_breakdown_tearsheet=True,
-        montecarlo_n=None,
+        montecarlo_cycles=None,
         montecarlo_preaggregate=True,
         title=None
         ):
@@ -147,12 +188,15 @@ class Tearsheet(BaseTearsheet):
         include_annual_breakdown_tearsheet : bool
             whether to include an annual breakdown of Sharpe and CAGR
 
-        montecarlo_n : int
+        montecarlo_cycles : int
             how many Montecarlo simulations to run on the returns, if any
 
         montecarlo_preaggregate : bool
             whether Montecarlo simulator should preaggregate returns;
-            ignored unless montecarlo_n is nonzero
+            ignored unless montecarlo_cycles is nonzero
+
+        title : str, optional
+            figure title
 
         Returns
         -------
@@ -179,9 +223,9 @@ class Tearsheet(BaseTearsheet):
             performance.net_exposures, performance.abs_exposures)]):
             self.create_exposures_tearsheet(performance, agg_performance)
 
-        if montecarlo_n:
+        if montecarlo_cycles:
             self.montecarlo_simulate(
-                performance, n=montecarlo_n, preaggregate=montecarlo_preaggregate)
+                performance, cycles=montecarlo_cycles, preaggregate=montecarlo_preaggregate)
 
         self._save_or_show()
 
@@ -482,7 +526,7 @@ class Tearsheet(BaseTearsheet):
         agg_stats_text = "{0}\n{1}\n{2}".format(title, "="*width, agg_stats_text)
         return agg_stats_text
 
-    def montecarlo_simulate(self, performance, n=5, preaggregate=True):
+    def montecarlo_simulate(self, performance, cycles=5, preaggregate=True):
         """
         Runs a Montecarlo simulation by shuffling the dataframe of returns n
         number of times and graphing the cum_returns and drawdowns overlaid
@@ -499,7 +543,7 @@ class Tearsheet(BaseTearsheet):
         if preaggregate:
             returns = returns.sum(axis=1)
 
-        for i in range(n):
+        for i in range(cycles):
             if preaggregate:
                 sim_returns = pd.Series(np.random.permutation(returns), index=returns.index)
             else:
@@ -515,13 +559,13 @@ class Tearsheet(BaseTearsheet):
         if not preaggregate:
             returns = returns.sum(axis=1)
 
-        cum_sim_returns = performance.get_cum_returns(performance.with_baseline(sim_returns))
-        cum_returns = performance.get_cum_returns(performance.with_baseline(returns))
+        cum_sim_returns = performance.get_cum_returns(sim_returns)
+        cum_returns = performance.get_cum_returns(returns)
         fig = plt.figure("Montecarlo Simulation", figsize=self.figsize)
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(211)
-        cum_sim_returns.plot(ax=axis, title="Montecarlo Cumulative Returns (n={0})".format(n), legend=False)
-        cum_returns.plot(ax=axis, linewidth=4, color="black")
+        with_baseline(cum_sim_returns).plot(ax=axis, title="Montecarlo Cumulative Returns ({0} cycles)".format(cycles), legend=False)
+        with_baseline(cum_returns).plot(ax=axis, linewidth=4, color="black")
         axis = fig.add_subplot(212)
-        performance.get_drawdowns(cum_sim_returns).plot(ax=axis, title="Montecarlo Drawdowns (n={0})".format(n), legend=False)
-        performance.get_drawdowns(cum_returns).plot(ax=axis, linewidth=4, color="black")
+        with_baseline(performance.get_drawdowns(cum_sim_returns)).plot(ax=axis, title="Montecarlo Drawdowns ({0} cycles)".format(cycles), legend=False)
+        with_baseline(performance.get_drawdowns(cum_returns)).plot(ax=axis, linewidth=4, color="black")

@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import cycler
 from matplotlib.backends.backend_pdf import PdfPages
+from .utils import with_baseline
 
 # Set seaborn default style
 sns.set()
@@ -110,18 +111,18 @@ class BaseTearsheet(object):
             subplot != 212 and (include_commissions or include_slippage)):
 
             if include_commissions:
-                commissions_pct = performance.with_baseline(performance.commissions_pct)
+                commissions_pct = performance.commissions_pct
                 cum_commissions_pct = performance.get_cum_returns(commissions_pct)
                 cum_commissions_pct.name = "commissions"
 
             if include_slippage:
-                slippages = performance.with_baseline(performance.slippages)
+                slippages = performance.slippages
                 cum_slippages = performance.get_cum_returns(slippages)
                 cum_slippages.name = "slippage"
 
-            performance.cum_returns_with_baseline.name = "returns"
+            performance.cum_returns.name = "returns"
 
-            cum_gross_returns = performance.cum_returns_with_baseline
+            cum_gross_returns = performance.cum_returns
 
             if include_commissions:
                 cum_gross_returns = cum_gross_returns.multiply(cum_commissions_pct)
@@ -130,7 +131,7 @@ class BaseTearsheet(object):
                 cum_gross_returns = cum_gross_returns.multiply(cum_slippages)
 
             cum_gross_returns.name = "gross returns"
-            breakdown_parts = [performance.cum_returns_with_baseline, cum_gross_returns]
+            breakdown_parts = [performance.cum_returns, cum_gross_returns]
 
             if include_commissions:
                 breakdown_parts.append(cum_commissions_pct)
@@ -143,12 +144,12 @@ class BaseTearsheet(object):
             except TypeError:
                 # sort was introduced in pandas 0.23
                 returns_breakdown = pd.concat(breakdown_parts, axis=1)
-            plot = returns_breakdown.plot(ax=axis, title="Cumulative Returns {0}".format(extra_label))
+            plot = with_baseline(returns_breakdown).plot(ax=axis, title="Cumulative Returns {0}".format(extra_label))
             if isinstance(returns_breakdown, pd.DataFrame):
                 self._clear_legend(plot)
         else:
-            plot = performance.cum_returns_with_baseline.plot(ax=axis, title="Cumulative Returns {0}".format(extra_label))
-            if isinstance(performance.cum_returns_with_baseline, pd.DataFrame):
+            plot = with_baseline(performance.cum_returns).plot(ax=axis, title="Cumulative Returns {0}".format(extra_label))
+            if isinstance(performance.cum_returns, pd.DataFrame):
                 self._clear_legend(plot)
 
         fig = plt.figure("Drawdowns", figsize=figsize)
@@ -214,15 +215,15 @@ class BaseTearsheet(object):
             if max_return >= 2:
                 axis.set_yscale("log", basey=2)
 
-            if isinstance(performance.cum_returns_with_baseline, pd.Series):
-                performance.cum_returns_with_baseline.name = "strategy"
-            benchmark_cum_returns = performance.get_cum_returns(performance.with_baseline(benchmark_returns))
+            if isinstance(performance.cum_returns, pd.Series):
+                performance.cum_returns.name = "strategy"
+            benchmark_cum_returns = performance.get_cum_returns(benchmark_returns)
             try:
-                vs_benchmark = pd.concat((performance.cum_returns_with_baseline, benchmark_cum_returns), axis=1, sort=True)
+                vs_benchmark = pd.concat((performance.cum_returns, benchmark_cum_returns), axis=1, sort=True)
             except TypeError:
                 # sort was introduced in pandas 0.23
-                vs_benchmark = pd.concat((performance.cum_returns_with_baseline, benchmark_cum_returns), axis=1)
-            plot = vs_benchmark.plot(ax=axis, title="Cumulative Returns vs Benchmark {0}".format(extra_label))
+                vs_benchmark = pd.concat((performance.cum_returns, benchmark_cum_returns), axis=1)
+            plot = with_baseline(vs_benchmark).plot(ax=axis, title="Cumulative Returns vs Benchmark {0}".format(extra_label))
             if isinstance(vs_benchmark, pd.DataFrame):
                 self._clear_legend(plot)
 

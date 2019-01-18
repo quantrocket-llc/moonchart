@@ -23,7 +23,7 @@ from .exceptions import MoonchartError
 
 class ParamscanTearsheet(BaseTearsheet):
 
-    def from_moonshot(self, results, **kwargs):
+    def _from_moonshot(self, results, **kwargs):
         """
         Creates a param scan tear sheet from a moonshot param scan results
         DataFrame.
@@ -75,7 +75,7 @@ class ParamscanTearsheet(BaseTearsheet):
         None
         """
         results = pd.read_csv(filepath_or_buffer)
-        return cls(**kwargs).from_moonshot(results)
+        return cls(**kwargs)._from_moonshot(results)
 
     def create_full_tearsheet(self, results, heatmap_2d=True):
         """
