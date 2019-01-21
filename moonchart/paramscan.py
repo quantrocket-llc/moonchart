@@ -23,20 +23,10 @@ from .exceptions import MoonchartError
 
 class ParamscanTearsheet(BaseTearsheet):
 
-    def _from_moonshot(self, results, **kwargs):
+    def _from_moonshot(self, results):
         """
         Creates a param scan tear sheet from a moonshot param scan results
         DataFrame.
-
-        Parameters
-        ----------
-        results : DataFrame
-            DataFrame of paramscan results with columns
-            (Field, StrategyOrDate, param1[, param2], Value)
-
-        Returns
-        -------
-        None
         """
         if "StrategyOrDate" not in results.columns:
             raise MoonchartError(
@@ -58,24 +48,36 @@ class ParamscanTearsheet(BaseTearsheet):
         results = results.unstack(level=params)
         results =results.reindex(columns=desired_cols)
 
-        return self.create_full_tearsheet(results, **kwargs)
+        return self.create_full_tearsheet(results)
 
     @classmethod
-    def from_moonshot_csv(cls, filepath_or_buffer, **kwargs):
+    def from_moonshot_csv(cls, filepath_or_buffer, figsize=None, pdf_filename=None):
         """
-        Creates a full tear sheet from a moonshot paramscan results CSV.
+        Create a parameter scan tear sheet from a Moonshot paramscan results CSV.
 
         Parameters
         ----------
         filepath_or_buffer : str or file-like object
             filepath or file-like object of the CSV
 
+        figsize : tuple (width, height), optional
+            (width, height) of matplotlib figure. Default is (16, 12)
+
+        pdf_filename : string, optional
+            save tear sheet to this filepath as a PDF instead of displaying
+
         Returns
         -------
         None
+
+        Examples
+        --------
+        >>> from moonshot import ParamscanTearsheet
+        >>> ParamscanTearsheet.from_moonshot_csv("paramscan_results.csv")
         """
         results = pd.read_csv(filepath_or_buffer)
-        return cls(**kwargs)._from_moonshot(results)
+        t = cls(figsize=figsize, pdf_filename=pdf_filename)
+        return t._from_moonshot(results)
 
     def create_full_tearsheet(self, results, heatmap_2d=True):
         """
@@ -94,20 +96,39 @@ class ParamscanTearsheet(BaseTearsheet):
         -------
         None
         """
-        # Set suptitle
         returns = results.loc["AggReturn"]
         returns.index = pd.to_datetime(returns.index)
         returns.index.name = "Date"
-        min_date = returns.index.min().date().isoformat()
-        max_date = returns.index.max().date().isoformat()
 
+        summary = OrderedDict()
         if results.columns.nlevels == 2:
+            param1, param2 = results.columns.names
+            summary["Parameter 1"] = param1
+            summary["Parameter 2"] = param2
             params_title = " / ".join(results.columns.names)
         else:
+            summary["Parameter"] = results.columns.name
             params_title = results.columns.name
 
-        self.suptitle = "{0} ({1} - {2})".format(
-            params_title, min_date, max_date)
+        summary["Start Date"] = returns.index.min().date().isoformat()
+        summary["End Date"] = returns.index.max().date().isoformat()
+
+        with sns.axes_style("white", {'axes.linewidth': 0}):
+
+            fig = plt.figure("Parameter Scan Summary")
+
+            axis = fig.add_subplot(111)
+            axis.get_xaxis().set_visible(False)
+            axis.get_yaxis().set_visible(False)
+
+            table = axis.table(
+                cellText=[[v] for v in summary.values()],
+                rowLabels=list(summary.keys()),
+                loc="center")
+
+            table.scale(1, 2)
+            table.set_fontsize("large")
+            fig.tight_layout()
 
         # Plot 1d bar charts or 2d heat maps
         if results.columns.nlevels == 2 and heatmap_2d:
@@ -122,8 +143,8 @@ class ParamscanTearsheet(BaseTearsheet):
         width, height = self.figsize
         figsize = width, height/2
 
-        self._create_performance_plots(performance, subplot=111, extra_label=" (Aggregate)",
-                                       figsize=figsize)
+        self._create_returns_plots(performance, subplot=111, extra_label=" (Aggregate)",
+                                   figsize=figsize, legend_title=params_title)
 
         self._save_or_show()
 
@@ -132,53 +153,56 @@ class ParamscanTearsheet(BaseTearsheet):
         Creates bar charts for 1d param scans.
         """
         fields = (
-            ("Cagr", "CAGR"),
-            ("Sharpe", "Sharpe"),
-            ("MaxDrawdown", "Max Drawdown"),
-            ("AbsExposure", "Absolute Exposure"),
-            ("NormalizedCagr", "Normalized CAGR (CAGR/Exposure)"),
-            ("TotalHoldings", "Avg Daily Holdings"),
+            ("Cagr", "CAGR", self._y_format_as_percentage),
+            ("Sharpe", "Sharpe", self._y_format_at_least_two_decimal_places),
+            ("MaxDrawdown", "Max Drawdown", self._y_format_as_percentage),
+            ("AbsExposure", "Absolute Exposure", self._y_format_as_percentage),
+            ("NormalizedCagr", "Normalized CAGR (CAGR/Absolute Exposure)", self._y_format_as_percentage),
+            ("TotalHoldings", "Avg Daily Holdings", None),
         )
-        fields = OrderedDict(fields)
 
+        color_palette = sns.color_palette()
         num_series = len(results.columns)
         if num_series > 6:
-            sns.set_palette(sns.color_palette("hls", num_series))
+            color_palette = sns.color_palette("hls", num_series)
 
-        rows, cols = self._get_plot_dimensions(len(fields))
-        # dynamically adjust window height based on number of plots
-        width = max((self.figsize[0], cols*5+2))
-        height = max((self.figsize[1], rows*2+3))
-        fig = plt.figure("Parameter Scan Results", figsize=(width, height))
-        fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+        with sns.color_palette(color_palette):
+            rows, cols = self._get_plot_dimensions(len(fields))
+            # dynamically adjust window height based on number of plots
+            width = max((self.figsize[0], cols*5+2))
+            height = max((self.figsize[1], rows*2+3))
+            fig = plt.figure("Parameter Scan Results", figsize=(width, height))
 
-        for i, field in enumerate(list(fields.keys())):
-            field_results = results.loc[field]
-            field_results.index.name = "Strategy"
-            field_results = field_results.T
-            field_results.index = field_results.index.astype(str).str.wrap(10)
+            for i, (field, title, y_formatter) in enumerate(fields):
+                if field not in results.index.get_level_values("Field"):
+                    continue
+                field_results = results.loc[field]
+                field_results.index.name = "Strategy"
+                field_results = field_results.T
+                field_results.index = field_results.index.astype(str).str.wrap(10)
 
-            axis = fig.add_subplot(rows, cols, i + 1)
-            plot = field_results.plot(ax=axis, kind="bar", title=fields[field],
-                                      fontsize="small")
-            if isinstance(field_results, pd.DataFrame):
-                self._clear_legend(plot, legend_title="Strategy")
+                axis = fig.add_subplot(rows, cols, i + 1)
+                if y_formatter is not None:
+                    y_formatter(axis)
+                plot = field_results.plot(ax=axis, kind="bar", title=title)
+                if isinstance(field_results, pd.DataFrame):
+                    self._clear_legend(plot, legend_title="Strategy")
 
-            # Remove legend on all but the upper right subplot, to
-            # clean up appearance
-            is_upper_right =  i+1 == cols
-            if not is_upper_right:
-                plot.legend_.remove()
+                # Remove legend on all but the upper right subplot, to
+                # clean up appearance
+                is_upper_right =  i+1 == cols
+                if not is_upper_right:
+                    plot.legend_.remove()
 
-            # Hide x-axis label except on last row to save space
-            is_last_row = (i+1) > (rows-1) * cols
-            if not is_last_row:
-                x_axis = axis.axes.get_xaxis()
-                x_label = x_axis.get_label()
-                x_label.set_visible(False)
+                # Hide x-axis label except on last row to save space
+                is_last_row = (i+1) > (rows-1) * cols
+                if not is_last_row:
+                    x_axis = axis.axes.get_xaxis()
+                    x_label = x_axis.get_label()
+                    x_label.set_visible(False)
 
-        if num_series > 6:
-            sns.set()
+            fig.tight_layout()
+            fig.subplots_adjust(top=0.9)
 
     def _create_2d_heatmaps(self, results):
         """
@@ -190,8 +214,8 @@ class ParamscanTearsheet(BaseTearsheet):
             ("Sharpe", "Sharpe"),
             ("MaxDrawdown", "Max DD"),
             ("AbsExposure", "Abs Exposure"),
-            ("NormalizedCagr", "Normalized CAGR"),
             ("TotalHoldings", "Avg Daily Holdings"),
+            ("NormalizedCagr", "Normalized CAGR"),
         )
         fields = OrderedDict(fields)
 
@@ -210,7 +234,6 @@ class ParamscanTearsheet(BaseTearsheet):
                 width = max((self.figsize[0], cols*5+2))
                 height = max((self.figsize[1], rows*2+3))
                 fig = plt.figure("Parameter Scan Heat Maps", figsize=(width, height))
-                fig.suptitle(self.suptitle, **self.suptitle_kwargs)
 
             for ii, strategy in enumerate(strategies):
                 strategy_results = field_results[strategy]

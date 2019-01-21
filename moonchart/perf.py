@@ -14,8 +14,9 @@
 
 import numpy as np
 import pandas as pd
-from .exceptions import InsufficientData
+from .exceptions import InsufficientData, MoonchartError
 from .utils import (
+    get_zscores,
     trim_outliers as trim_outliers_func,
     get_sharpe,
     get_rolling_sharpe,
@@ -27,7 +28,9 @@ from quantrocket.moonshot import read_moonshot_csv, intraday_to_daily
 
 class DailyPerformance(object):
     """
-    Class for storing performance attributes and calculating derived statistics.
+    Class representing daily performance and derived statistics.
+
+    Typically constructed using DailyPerformance.from_moonshot_csv.
 
     Parameters
     ----------
@@ -100,6 +103,17 @@ class DailyPerformance(object):
         self._trim_outliers = trim_outliers
         if trim_outliers:
             self.returns = trim_outliers_func(returns, z_score=trim_outliers)
+        else:
+            # warn the user if there are >10-sigma returns
+            z_scores = get_zscores(returns)
+            max_zscore = z_scores.abs().max()
+            if isinstance(returns, pd.DataFrame):
+                max_zscore = max_zscore.max()
+            if max_zscore > 10:
+                import warnings
+                warnings.warn("Found returns which are {0} standard deviations from the "
+                              "mean, consider removing them with the `trim_outliers` parameter".format(
+                                  round(max_zscore)))
         self.pnl = pnl
         self.net_exposures = net_exposures
         self.abs_exposures = abs_exposures
@@ -134,12 +148,17 @@ class DailyPerformance(object):
             results = intraday_to_daily(results)
 
         fields = results.index.get_level_values("Field").unique()
-        kwargs = {}
+        kwargs = dict(
+            trim_outliers=trim_outliers,
+            riskfree=riskfree,
+            compound=compound,
+            rolling_sharpe_window=rolling_sharpe_window
+        )
         kwargs["returns"] = results.loc["Return"]
-        if "Position" in fields:
-            kwargs["net_exposures"] = results.loc["Position"]
-        if "AbsPosition" in fields:
-            kwargs["abs_exposures"] = results.loc["AbsPosition"]
+        if "NetExposure" in fields:
+            kwargs["net_exposures"] = results.loc["NetExposure"]
+        if "AbsExposure" in fields:
+            kwargs["abs_exposures"] = results.loc["AbsExposure"]
         if "TotalHoldings" in fields:
             kwargs["total_holdings"] = results.loc["TotalHoldings"]
         if "Trade" in fields:
@@ -160,8 +179,65 @@ class DailyPerformance(object):
                           compound=True,
                           rolling_sharpe_window=200):
         """
-        Creates a DailyPerformance instance from a moonshot backtest results
-        CSV.
+        Creates a DailyPerformance instance from a Moonshot backtest results CSV.
+
+        Parameters
+        ----------
+        filepath_or_buffer : str or file-like object
+            filepath or file-like object of the CSV
+
+        trim_outliers: int or float, optional
+            discard returns that are more than this many standard deviations from
+            the mean. Useful for dealing with data anomalies that cause large
+            spikes in plots.
+
+        riskfree : float, optional
+            the riskfree rate (default 0)
+
+        compound : bool
+             True for compound/geometric returns, False for arithmetic returns (default True)
+
+        rolling_sharpe_window : int, optional
+            compute rolling Sharpe over this many periods (default 200)
+
+        Returns
+        -------
+        DailyPerformance
+
+        Examples
+        --------
+        Plot cumulative returns:
+
+        >>> perf = DailyPerformance.from_moonshot_csv("backtest_results.csv")
+        >>> perf.cum_returns.plot()
+        """
+        try:
+            results = read_moonshot_csv(filepath_or_buffer)
+        except ValueError as e:
+            # "ValueError: 'Date' is not in list" might mean the user passed
+            # a paramscan csv by mistake
+            if "Date" not in repr(e):
+                raise
+            results = pd.read_csv(filepath_or_buffer)
+            if "StrategyOrDate" in results.columns:
+                raise MoonchartError("this is a parameter scan CSV, please use ParamscanTearsheet.from_moonshot_csv")
+            else:
+                raise
+
+        return cls._from_moonshot(
+            results, trim_outliers=trim_outliers,
+            riskfree=riskfree,
+            compound=compound,
+            rolling_sharpe_window=rolling_sharpe_window)
+
+    @classmethod
+    def from_pnl_csv(cls, filepath_or_buffer,
+                          trim_outliers=None,
+                          riskfree=0,
+                          compound=True,
+                          rolling_sharpe_window=200):
+        """
+        Creates a DailyPerformance instance from a PNL CSV.
 
         Parameters
         ----------
@@ -183,22 +259,38 @@ class DailyPerformance(object):
         Returns
         -------
         DailyPerformance
+
+        Examples
+        --------
+        Plot cumulative returns:
+
+        >>> perf = DailyPerformance.from_pnl_csv("pnl.csv")
+        >>> perf.cum_returns.plot()
         """
         results = read_moonshot_csv(filepath_or_buffer)
 
-        return cls._from_moonshot(
+        return cls._from_pnl(
             results, trim_outliers=trim_outliers,
             riskfree=riskfree,
             compound=compound,
             rolling_sharpe_window=rolling_sharpe_window)
 
     @classmethod
-    def _from_pnl(cls, results):
+    def _from_pnl(cls, results,
+                  trim_outliers=None,
+                  riskfree=0,
+                  compound=True,
+                  rolling_sharpe_window=200):
         """
         Creates a DailyPerformance instance from a PNL results DataFrame.
         """
         fields = results.index.get_level_values("Field").unique()
-        kwargs = {}
+        kwargs = dict(
+            trim_outliers=trim_outliers,
+            riskfree=riskfree,
+            compound=compound,
+            rolling_sharpe_window=rolling_sharpe_window
+        )
         kwargs["returns"] = results.loc["Return"].astype(np.float64)
         kwargs["pnl"] = results.loc["Pnl"].astype(np.float64)
         if "NetExposure" in fields:
@@ -297,16 +389,67 @@ class DailyPerformance(object):
         return self._benchmark_returns
 
 class AggregateDailyPerformance(DailyPerformance):
+    """
+    Class representing aggregate daily performance.
 
-    def __init__(self, performance):
+    Given a DailyPerformance instance containing multi-column (that is,
+    multi-strategy or detailed single-strategy) DataFrames, this class
+    represents the aggregate performance.
+
+    Parameters
+    ----------
+    performance : DailyPerformance, required
+        daily performance results to aggregate
+
+    trim_outliers: int or float, optional
+        discard returns that are more than this many standard deviations from the mean
+        (copied from DailyPerformance if omitted)
+
+    riskfree : float, optional
+        the riskfree rate (copied from DailyPerformance if omitted)
+
+    compound : bool
+         True for compound/geometric returns, False for arithmetic returns (copied from
+         DailyPerformance if omitted)
+
+    rolling_sharpe_window : int, optional
+        compute rolling Sharpe over this many periods (copied from DailyPerformance if
+        omitted)
+
+    Returns
+    -------
+    AggregatePerformance
+
+    Examples
+    --------
+    Plot aggregate cumulative returns:
+
+    >>> perf = DailyPerformance.from_moonshot_csv("backtest_results.csv")
+    >>> agg_perf = AggregateDailyPerformance(perf)
+    >>> agg_perf.cum_returns.plot()
+    """
+
+    def __init__(self, performance, riskfree=None,
+                 compound=None,
+                 rolling_sharpe_window=None,
+                 trim_outliers=None):
+
+        if riskfree is None:
+            riskfree = performance.riskfree
+        if compound is None:
+            compound = performance.compound
+        if rolling_sharpe_window is None:
+            rolling_sharpe_window = performance.rolling_sharpe_window
+        if trim_outliers is None:
+            trim_outliers = performance._trim_outliers
 
         super(AggregateDailyPerformance, self).__init__(
             performance.returns.sum(axis=1),
-            riskfree=performance.riskfree,
-            compound=performance.compound,
-            rolling_sharpe_window=performance.rolling_sharpe_window,
+            riskfree=riskfree,
+            compound=compound,
+            rolling_sharpe_window=rolling_sharpe_window,
             benchmark=performance._benchmark_prices,
-            trim_outliers=performance._trim_outliers
+            trim_outliers=trim_outliers
         )
         if performance.pnl is not None:
             self.pnl = performance.pnl.sum(axis=1)

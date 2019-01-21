@@ -15,6 +15,22 @@
 import pandas as pd
 import numpy as np
 
+def get_zscores(data):
+    """
+    Returns the Z-scores of the input data.
+
+    Parameters
+    ----------
+    data : Series or DataFrame, required
+        Series or DataFrame of observations
+
+    Returns
+    -------
+    Series or DataFrame
+    """
+    z_scores = (data - data.mean())/data.std()
+    return z_scores
+
 def trim_outliers(data, z_score):
     """
     Zeroes out observations that are too many standard deviations from the
@@ -32,7 +48,7 @@ def trim_outliers(data, z_score):
     -------
     Series or DataFrame
     """
-    z_scores = (data - data.mean())/data.std()
+    z_scores = get_zscores(data)
     return data.where(z_scores.abs() <= z_score, 0)
 
 def with_baseline(data, value=1):

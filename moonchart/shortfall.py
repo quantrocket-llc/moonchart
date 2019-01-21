@@ -27,7 +27,7 @@ class ShortFallTearsheet(BaseTearsheet):
         raise NotImplementedError()
 
         # TODO: be more specific
-        self.suptitle = "Shortfall Analysis"
+        self._suptitle = "Shortfall Analysis"
 
         strategies = live_returns.columns.union(simulated_returns.columns)
         strategy_count = len(strategies)
@@ -52,17 +52,17 @@ class ShortFallTearsheet(BaseTearsheet):
             shortfall = cum_returns.live - cum_returns.simulated
 
             fig = plt.figure("Cumulative Returns", figsize=self.figsize)
-            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+            fig.suptitle(self._suptitle, **self._suptitle_kwargs)
             axis = fig.add_subplot(rows, cols, i+1)
             cum_returns.plot(ax=axis, title=strategy)
 
             fig = plt.figure("Drawdowns", figsize=self.figsize)
-            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+            fig.suptitle(self._suptitle, **self._suptitle_kwargs)
             axis = fig.add_subplot(rows, cols, i+1)
             drawdowns.plot(ax=axis, title=strategy)
 
             fig = plt.figure("Shortfall", figsize=self.figsize)
-            fig.suptitle(self.suptitle, **self.suptitle_kwargs)
+            fig.suptitle(self._suptitle, **self._suptitle_kwargs)
             axis = fig.add_subplot(rows, cols, i+1)
             shortfall.plot(ax=axis, title=strategy, kind="area", stacked=False)
 

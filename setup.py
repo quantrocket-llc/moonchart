@@ -30,5 +30,7 @@ setup(name='quantrocket-moonchart',
         "pandas>=0.20",
         "seaborn",
         "quantrocket-client",
+        "empyrical",
+        "scipy",
     ]
 )
