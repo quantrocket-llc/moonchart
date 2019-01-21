@@ -15,7 +15,14 @@
 import numpy as np
 import pandas as pd
 from .exceptions import InsufficientData
-from .utils import trim_outliers
+from .utils import (
+    trim_outliers as trim_outliers_func,
+    get_sharpe,
+    get_rolling_sharpe,
+    get_cagr,
+    get_cum_returns,
+    get_drawdowns)
+
 from quantrocket.moonshot import read_moonshot_csv, intraday_to_daily
 
 class DailyPerformance(object):
@@ -57,7 +64,7 @@ class DailyPerformance(object):
     riskfree : float, optional
         the riskfree rate (default 0)
 
-    compound_returns : bool
+    compound : bool
          True for compound/geometric returns, False for arithmetic returns (default True)
 
     rolling_sharpe_window : int, optional
@@ -80,7 +87,7 @@ class DailyPerformance(object):
         slippages=None,
         benchmark=None,
         riskfree=0,
-        compound_returns=True,
+        compound=True,
         rolling_sharpe_window=200,
         trim_outliers=None
         ):
@@ -90,8 +97,9 @@ class DailyPerformance(object):
             raise InsufficientData(
                 "Moonchart needs at least 2 dates to analyze performance, "
                 "but returns DataFrame has length {0}".format(len(self.returns.index)))
+        self._trim_outliers = trim_outliers
         if trim_outliers:
-            self.returns = trim_outliers(returns, z_score=trim_outliers)
+            self.returns = trim_outliers_func(returns, z_score=trim_outliers)
         self.pnl = pnl
         self.net_exposures = net_exposures
         self.abs_exposures = abs_exposures
@@ -100,10 +108,11 @@ class DailyPerformance(object):
         self.commissions = commissions
         self.commissions_pct = commissions_pct
         self.slippages = slippages
-        self.benchmark = benchmark
         self.riskfree = riskfree
+        self.compound = compound
         self.rolling_sharpe_window = rolling_sharpe_window
-        self.compound_returns = compound_returns
+        self._benchmark_prices = benchmark
+        self._benchmark_returns = None
         self._cum_returns = None
         self._sharpe = None
         self._rolling_sharpe = None
@@ -116,7 +125,7 @@ class DailyPerformance(object):
     def _from_moonshot(cls, results,
                        trim_outliers=None,
                        riskfree=0,
-                       compound_returns=True,
+                       compound=True,
                        rolling_sharpe_window=200):
         """
         Creates a DailyPerformance instance from a moonshot backtest results DataFrame.
@@ -148,7 +157,7 @@ class DailyPerformance(object):
     def from_moonshot_csv(cls, filepath_or_buffer,
                           trim_outliers=None,
                           riskfree=0,
-                          compound_returns=True,
+                          compound=True,
                           rolling_sharpe_window=200):
         """
         Creates a DailyPerformance instance from a moonshot backtest results
@@ -165,7 +174,7 @@ class DailyPerformance(object):
         riskfree : float, optional
             the riskfree rate (default 0)
 
-        compound_returns : bool
+        compound : bool
              True for compound/geometric returns, False for arithmetic returns (default True)
 
         rolling_sharpe_window : int, optional
@@ -180,7 +189,7 @@ class DailyPerformance(object):
         return cls._from_moonshot(
             results, trim_outliers=trim_outliers,
             riskfree=riskfree,
-            compound_returns=compound_returns,
+            compound=compound,
             rolling_sharpe_window=rolling_sharpe_window)
 
     @classmethod
@@ -211,44 +220,44 @@ class DailyPerformance(object):
     def cum_returns(self):
 
         if self._cum_returns is None:
-            self._cum_returns = self.get_cum_returns(self.returns)
+            self._cum_returns = get_cum_returns(self.returns, compound=self.compound)
 
         return self._cum_returns
 
     @property
     def cagr(self):
         if self._cagr is None:
-            self._cagr = self.get_cagr(self.cum_returns)
+            self._cagr = get_cagr(self.cum_returns, compound=self.compound)
 
         return self._cagr
 
     @property
     def sharpe(self):
         if self._sharpe is None:
-            self._sharpe = self.get_sharpe(self.returns)
+            self._sharpe = get_sharpe(self.returns, riskfree=self.riskfree)
 
         return self._sharpe
 
     @property
     def rolling_sharpe(self):
         if self._rolling_sharpe is None:
-            self._rolling_sharpe = self.get_rolling_sharpe(self.returns)
+            self._rolling_sharpe = get_rolling_sharpe(
+                self.returns,
+                window=self.rolling_sharpe_window,
+                riskfree=self.riskfree)
 
         return self._rolling_sharpe
 
     @property
     def drawdowns(self):
         if self._drawdowns is None:
-            self._drawdowns = self.get_drawdowns(self.cum_returns)
+            self._drawdowns = get_drawdowns(self.cum_returns)
 
         return self._drawdowns
 
     @property
     def max_drawdown(self):
-        if self._max_drawdown is None:
-            self._max_drawdown = self.get_max_drawdown(self.drawdowns)
-
-        return self._max_drawdown
+        return self.drawdowns.min()
 
     @property
     def cum_pnl(self):
@@ -257,122 +266,20 @@ class DailyPerformance(object):
 
         return self._cum_pnl
 
-    def get_sharpe(self, returns):
+    @property
+    def benchmark_returns(self):
         """
-        Returns the Sharpe ratio of the provided returns (which should be a
-        DataFrame or Series).
+        Returns a Series of benchmark returns from the DataFrame of benchmark
+        prices, if any. If more than one strategy/column has benchmark
+        prices, uses the first to compute returns.
         """
-        mean = (returns - self.riskfree).mean()
-        if isinstance(mean, float) and mean == 0:
-            return 0
-        std = (returns - self.riskfree).std()
-        # Returns are assumed to represent daily returns, so annualize the Sharpe ratio
-        return mean/std * np.sqrt(252)
+        if self._benchmark_returns is not None:
+            return self._benchmark_returns
 
-    def get_rolling_sharpe(self, returns):
-        """
-        Computes rolling Sharpe ratios for the returns. Returns should be a
-        DataFrame.
-        """
-        rolling_returns = returns.fillna(0).rolling(
-            self.rolling_sharpe_window, min_periods=self.rolling_sharpe_window)
-        try:
-            return rolling_returns.apply(self.get_sharpe, raw=True)
-        except TypeError as e:
-            # handle pandas<0.23
-            if "apply() got an unexpected keyword argument 'raw'" in repr(e):
-                return rolling_returns.apply(self.get_sharpe)
-            else:
-                raise
-
-    def get_cum_returns(self, returns, compound=None):
-        """
-        Computes the cumulative returns of the provided Series or DataFrame.
-        """
-        if compound is None:
-            compound = self.compound_returns
-        if compound:
-            cum_returns = (1 + returns).cumprod()
-        else:
-            cum_returns = returns.cumsum() + 1
-
-        cum_returns.index.name = "Date"
-        return cum_returns
-
-    def get_cagr(self, cum_returns):
-        """
-        Computes the CAGR of the cum_returns (a DataFrame or Series).
-        """
-        # For DataFrames, apply this method to each Series.
-        if isinstance(cum_returns, pd.DataFrame):
-            return cum_returns.apply(self.get_cagr, axis=0)
-
-        # Ignore nulls when compting CAGR
-        cum_returns = cum_returns[cum_returns.notnull()]
-
-        if cum_returns.empty:
-            return 0
-
-        # Compute the CAGR of the Series
-        min_date = cum_returns.index.min()
-        max_date = cum_returns.index.max()
-        years = ((max_date - min_date).days or 1)/365.0
-        ending_value = cum_returns.iloc[-1]
-        # Since we are computing CAGR on cumulative returns, the beginning
-        # value is always 1.
-        beginning_value = 1
-        if self.compound_returns:
-            cagr = (ending_value/beginning_value)**(1/years) - 1
-        else:
-            # Compound annual growth rate doesn't apply to arithmetic
-            # returns, so just divide the cum_returns by the number of years
-            # to get the annual return
-            cagr = (ending_value/beginning_value - 1)/years
-
-        return cagr
-
-    def get_avg_exposure(self, exposures):
-        """
-        Calculates the avg exposure.
-        """
-        return exposures.mean()
-
-    def get_avg_total_holdings(self, total_holdings):
-        """
-        Calculates the avg exposure.
-        """
-        return total_holdings.mean()
-
-    def get_normalized_cagr(self, cagr, exposure):
-        """
-        Returns the CAGR per 1x exposure, a measure of the strategy's
-        efficiency.
-        """
-        return cagr / exposure
-
-    def get_drawdowns(self, cum_returns):
-        """
-        Computes the drawdowns of the cum_returns (a Series or DataFrame).
-        """
-        cum_returns = cum_returns[cum_returns.notnull()]
-        highwater_marks = cum_returns.expanding().max()
-        drawdowns = cum_returns/highwater_marks - 1
-        return drawdowns
-
-    def get_max_drawdown(self, drawdowns):
-        """
-        Returns the max drawdown.
-        """
-        return drawdowns.min()
-
-    def get_benchmark_returns(self):
-        """
-        Returns a Series of benchmark prices, if any. If more than one strategy/column has
-        benchmark prices, returns the first.
-        """
-        if self.benchmark is None:
+        if self._benchmark_prices is None:
             return None
-        have_benchmarks = self.benchmark.notnull().any(axis=0)
+
+        have_benchmarks = self._benchmark_prices.notnull().any(axis=0)
         have_benchmarks = have_benchmarks[have_benchmarks]
         if have_benchmarks.empty:
             return None
@@ -382,27 +289,12 @@ class DailyPerformance(object):
             import warnings
             warnings.warn("Multiple benchmarks found, only using first ({0})".format(col))
 
-        benchmark_prices = self.benchmark[col]
-        benchmark_prices.name = "benchmark"
-        return benchmark_prices.pct_change()
+        benchmark_prices = benchmark[col]
 
-    def get_top_movers(self, returns, top_n=10):
-        """
-        Returns the biggest gainers and losers in the returns.
-        """
+        self._benchmark_returns = benchmark_prices.pct_change()
+        self._benchmark_returns.name = "benchmark"
 
-        if isinstance(returns, pd.DataFrame):
-            returns = returns.stack()
-
-        returns = returns.sort_values()
-
-        try:
-            top_movers = pd.concat((returns.head(top_n), returns.tail(top_n)), sort=True)
-        except TypeError:
-            # sort was introduced in pandas 0.23
-            top_movers = pd.concat((returns.head(top_n), returns.tail(top_n)))
-
-        return top_movers
+        return self._benchmark_returns
 
 class AggregateDailyPerformance(DailyPerformance):
 
@@ -411,9 +303,10 @@ class AggregateDailyPerformance(DailyPerformance):
         super(AggregateDailyPerformance, self).__init__(
             performance.returns.sum(axis=1),
             riskfree=performance.riskfree,
-            compound_returns=performance.compound_returns,
+            compound=performance.compound,
             rolling_sharpe_window=performance.rolling_sharpe_window,
-            benchmark=performance.benchmark
+            benchmark=performance._benchmark_prices,
+            trim_outliers=performance._trim_outliers
         )
         if performance.pnl is not None:
             self.pnl = performance.pnl.sum(axis=1)

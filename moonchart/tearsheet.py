@@ -22,7 +22,13 @@ import warnings
 from .perf import DailyPerformance, AggregateDailyPerformance
 from .base import BaseTearsheet
 from .exceptions import MoonchartError
-from .utils import with_baseline
+from .utils import (
+    with_baseline,
+    get_sharpe,
+    get_cagr,
+    get_cum_returns,
+    get_drawdowns
+)
 
 class Tearsheet(BaseTearsheet):
     """
@@ -50,7 +56,7 @@ class Tearsheet(BaseTearsheet):
                        montecarlo_preaggregate=True,
                        trim_outliers=None,
                        riskfree=0,
-                       compound_returns=True,
+                       compound=True,
                        rolling_sharpe_window=200,
                        title=None):
         """
@@ -63,7 +69,7 @@ class Tearsheet(BaseTearsheet):
             results,
             trim_outliers=trim_outliers,
             riskfree=riskfree,
-            compound_returns=compound_returns,
+            compound=compound,
             rolling_sharpe_window=rolling_sharpe_window)
 
         return self.create_full_tearsheet(
@@ -85,7 +91,7 @@ class Tearsheet(BaseTearsheet):
                           montecarlo_preaggregate=True,
                           trim_outliers=None,
                           riskfree=0,
-                          compound_returns=True,
+                          compound=True,
                           rolling_sharpe_window=200,
                           title=None,
                           ):
@@ -126,7 +132,7 @@ class Tearsheet(BaseTearsheet):
             montecarlo_preaggregate=montecarlo_preaggregate,
             trim_outliers=trim_outliers,
             riskfree=riskfree,
-            compound_returns=compound_returns,
+            compound=compound,
             rolling_sharpe_window=rolling_sharpe_window,
             title=title)
 
@@ -355,12 +361,12 @@ class Tearsheet(BaseTearsheet):
         agg_stats_text = ""
 
         if agg_performance.net_exposures is not None:
-            avg_net_exposures = agg_performance.get_avg_exposure(agg_performance.net_exposures)
+            avg_net_exposures = agg_performance.net_exposures.mean()
             agg_stats["Avg Net Exposure"] = round(avg_net_exposures, 3)
 
         if agg_performance.abs_exposures is not None:
-            avg_abs_exposures = agg_performance.get_avg_exposure(agg_performance.abs_exposures)
-            norm_cagr = agg_performance.get_normalized_cagr(agg_performance.cagr, avg_abs_exposures)
+            avg_abs_exposures = agg_performance.abs_exposures.mean()
+            norm_cagr = agg_performance.cagr / avg_abs_exposures
             agg_stats["Avg Absolute Exposure"] = round(avg_abs_exposures, 3)
             agg_stats["Normalized CAGR (CAGR/Exposure)"] = round(norm_cagr, 3)
 
@@ -427,7 +433,7 @@ class Tearsheet(BaseTearsheet):
         if performance.abs_exposures is not None:
             fig = plt.figure("Avg Absolute Exposure {0}".format(extra_label), figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
-            avg_abs_exposures = performance.get_avg_exposure(performance.abs_exposures)
+            avg_abs_exposures = performance.abs_exposures.mean()
             axis = fig.add_subplot(111)
             avg_abs_exposures.sort_values(inplace=False).plot(
                 ax=axis, kind="bar", title="Avg Absolute Exposure {0}".format(extra_label))
@@ -436,14 +442,14 @@ class Tearsheet(BaseTearsheet):
         if performance.net_exposures is not None:
             fig = plt.figure("Avg Net Exposure {0}".format(extra_label), figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
-            avg_net_exposures = performance.get_avg_exposure(performance.net_exposures)
+            avg_net_exposures = performance.net_exposures.mean()
             axis = fig.add_subplot(111)
             avg_net_exposures.sort_values(inplace=False).plot(
             ax=axis, kind="bar", title="Avg Net Exposure {0}".format(extra_label))
             axis.set_ylabel("Proportion of capital")
 
         if performance.abs_exposures is not None:
-            norm_cagrs = performance.get_normalized_cagr(performance.cagr, avg_abs_exposures)
+            norm_cagrs = performance.cagr / avg_abs_exposures
             fig = plt.figure("Normalized CAGR (CAGR/Exposure) {0}".format(extra_label), figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(111)
@@ -454,7 +460,7 @@ class Tearsheet(BaseTearsheet):
         if performance.total_holdings is not None:
             fig = plt.figure("Avg Daily Holdings {0}".format(extra_label), figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
-            avg_total_holdings = performance.get_avg_total_holdings(performance.total_holdings)
+            avg_total_holdings = performance.total_holdings.mean()
             axis = fig.add_subplot(111)
             avg_total_holdings.sort_values(inplace=False).plot(
                 ax=axis, kind="bar", title="Avg Daily Holdings {0}".format(extra_label))
@@ -491,9 +497,10 @@ class Tearsheet(BaseTearsheet):
                 sns.set_palette(sns.color_palette("hls", num_series))
 
         grouped_returns = performance.returns.groupby(performance.returns.index.year)
-        cagrs_by_year = grouped_returns.apply(lambda x: performance.get_cagr(
-            performance.get_cum_returns(x)))
-        sharpes_by_year = grouped_returns.apply(performance.get_sharpe)
+        cagrs_by_year = grouped_returns.apply(lambda x: get_cagr(
+            get_cum_returns(x, compound=performance.compound),
+            compound=performance.compound))
+        sharpes_by_year = grouped_returns.apply(get_sharpe, riskfree=performance.riskfree)
 
         fig = plt.figure("CAGR by Year", figsize=figsize)
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
@@ -559,13 +566,13 @@ class Tearsheet(BaseTearsheet):
         if not preaggregate:
             returns = returns.sum(axis=1)
 
-        cum_sim_returns = performance.get_cum_returns(sim_returns)
-        cum_returns = performance.get_cum_returns(returns)
+        cum_sim_returns = get_cum_returns(sim_returns, compound=performance.compound)
+        cum_returns = get_cum_returns(returns, compound=performance.compound)
         fig = plt.figure("Montecarlo Simulation", figsize=self.figsize)
         fig.suptitle(self.suptitle, **self.suptitle_kwargs)
         axis = fig.add_subplot(211)
         with_baseline(cum_sim_returns).plot(ax=axis, title="Montecarlo Cumulative Returns ({0} cycles)".format(cycles), legend=False)
         with_baseline(cum_returns).plot(ax=axis, linewidth=4, color="black")
         axis = fig.add_subplot(212)
-        with_baseline(performance.get_drawdowns(cum_sim_returns)).plot(ax=axis, title="Montecarlo Drawdowns ({0} cycles)".format(cycles), legend=False)
-        with_baseline(performance.get_drawdowns(cum_returns)).plot(ax=axis, linewidth=4, color="black")
+        with_baseline(get_drawdowns(cum_sim_returns)).plot(ax=axis, title="Montecarlo Drawdowns ({0} cycles)".format(cycles), legend=False)
+        with_baseline(get_drawdowns(cum_returns)).plot(ax=axis, linewidth=4, color="black")

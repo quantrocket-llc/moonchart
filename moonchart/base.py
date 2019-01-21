@@ -18,7 +18,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import cycler
 from matplotlib.backends.backend_pdf import PdfPages
-from .utils import with_baseline
+from .utils import (
+    with_baseline,
+    get_cum_returns)
 
 # Set seaborn default style
 sns.set()
@@ -112,12 +114,12 @@ class BaseTearsheet(object):
 
             if include_commissions:
                 commissions_pct = performance.commissions_pct
-                cum_commissions_pct = performance.get_cum_returns(commissions_pct)
+                cum_commissions_pct = get_cum_returns(commissions_pct, compound=False)
                 cum_commissions_pct.name = "commissions"
 
             if include_slippage:
                 slippages = performance.slippages
-                cum_slippages = performance.get_cum_returns(slippages)
+                cum_slippages = get_cum_returns(slippages, compound=False)
                 cum_slippages.name = "slippage"
 
             performance.cum_returns.name = "returns"
@@ -203,8 +205,7 @@ class BaseTearsheet(object):
             if isinstance(performance.rolling_sharpe, pd.DataFrame):
                 self._clear_legend(plot)
 
-        benchmark_returns = performance.get_benchmark_returns()
-        if benchmark_returns is not None:
+        if performance.benchmark_returns is not None:
             fig = plt.figure("Cumulative Returns vs Benchmark", figsize=figsize)
             fig.suptitle(self.suptitle, **self.suptitle_kwargs)
             axis = fig.add_subplot(subplot)
@@ -217,7 +218,7 @@ class BaseTearsheet(object):
 
             if isinstance(performance.cum_returns, pd.Series):
                 performance.cum_returns.name = "strategy"
-            benchmark_cum_returns = performance.get_cum_returns(benchmark_returns)
+            benchmark_cum_returns = get_cum_returns(performance.benchmark_returns, compound=True)
             try:
                 vs_benchmark = pd.concat((performance.cum_returns, benchmark_cum_returns), axis=1, sort=True)
             except TypeError:
