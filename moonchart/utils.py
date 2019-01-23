@@ -15,31 +15,33 @@
 import pandas as pd
 import numpy as np
 
-def get_zscores(data):
+def get_zscores(returns):
     """
-    Returns the Z-scores of the input data.
+    Returns the Z-scores of the input returns.
 
     Parameters
     ----------
-    data : Series or DataFrame, required
-        Series or DataFrame of observations
+    returns : Series or DataFrame, required
+        Series or DataFrame of returns
 
     Returns
     -------
     Series or DataFrame
     """
-    z_scores = (data - data.mean())/data.std()
+    # Ignore 0 returns in calculating z score
+    nonzero_returns = returns.where(returns != 0)
+    z_scores = (nonzero_returns - nonzero_returns.mean())/nonzero_returns.std()
     return z_scores
 
-def trim_outliers(data, z_score):
+def trim_outliers(returns, z_score):
     """
     Zeroes out observations that are too many standard deviations from the
     mean.
 
     Parameters
     ----------
-    data : Series or DataFrame, required
-        Series or DataFrame of observations
+    returns : Series or DataFrame, required
+        Series or DataFrame of returns
 
     z_score : int or float, required
         maximum standard deviation values are allowed to be from the mean
@@ -48,8 +50,8 @@ def trim_outliers(data, z_score):
     -------
     Series or DataFrame
     """
-    z_scores = get_zscores(data)
-    return data.where(z_scores.abs() <= z_score, 0)
+    z_scores = get_zscores(returns)
+    return returns.where(z_scores.abs() <= z_score, 0)
 
 def with_baseline(data, value=1):
     """
