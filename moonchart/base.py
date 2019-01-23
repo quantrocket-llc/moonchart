@@ -92,7 +92,11 @@ class BaseTearsheet(object):
             if round(x,2) == round(x,3):
                 return '{:.2f}'.format(x)
             else:
-                return x
+                decimal_places = 3
+                while True:
+                    if math.isclose(round(x, decimal_places), round(x, decimal_places+1)):
+                        return round(x, decimal_places)
+                    decimal_places += 1
 
         y_axis_formatter = FuncFormatter(format_at_least_two_decimal_places)
         axis.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
