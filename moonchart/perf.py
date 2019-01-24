@@ -109,7 +109,7 @@ class DailyPerformance(object):
             max_zscore = z_scores.abs().max()
             if isinstance(returns, pd.DataFrame):
                 max_zscore = max_zscore.max()
-            if max_zscore > 10:
+            if max_zscore > 20:
                 import warnings
                 warnings.warn("Found returns which are {0} standard deviations from the "
                               "mean, consider removing them with the `trim_outliers` parameter".format(
