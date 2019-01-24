@@ -62,7 +62,7 @@ class BaseTearsheet(object):
         """
         if self._pdf:
             for fignum in plt.get_fignums():
-                self._pdf.savefig(fignum)
+                self._pdf.savefig(fignum, bbox_inches='tight')
             plt.close("all")
             self._pdf.close()
         else:

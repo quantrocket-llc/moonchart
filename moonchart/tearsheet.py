@@ -18,6 +18,7 @@ import seaborn as sns
 from quantrocket.moonshot import read_moonshot_csv, intraday_to_daily
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
+import math
 import warnings
 import empyrical as ep
 import scipy.stats
@@ -329,7 +330,7 @@ class Tearsheet(BaseTearsheet):
                 cellText=[[v] for v in values],
                 rowLabels=headings,
                 colLabels=["Performance Summary"],
-                loc="top"
+                loc="center"
             )
             for (row, col), cell in table.get_celld().items():
                 txt = cell.get_text().get_text()
@@ -359,7 +360,7 @@ class Tearsheet(BaseTearsheet):
                 cols.append("and {0} more".format(hidden_cols))
 
             cells_per_row = 4
-            cells = ["This tear sheet includes:"] + cols
+            cells = ["Included columns:"] + cols
             num_cells = len(cells)
             if num_cells > cells_per_row and num_cells % cells_per_row != 0:
                 # Cells must be divisible by cells_per_row for matplotlib table
@@ -598,38 +599,54 @@ class Tearsheet(BaseTearsheet):
         if num_series > 6:
             color_palette = sns.color_palette("hls", num_series)
 
+        total_plots = sum([1 for field in (
+            performance.abs_exposures,
+            performance.net_exposures,
+            performance.total_holdings,
+            performance.trades,
+            performance.abs_exposures) if field is not None])
+
+        rows = math.ceil(total_plots/2)
+
         with sns.color_palette(color_palette):
+
+            next_pos = 1
 
             if performance.abs_exposures is not None:
                 avg_abs_exposures = performance.abs_exposures.mean()
-                axis = fig.add_subplot(3,2,1)
+                axis = fig.add_subplot(rows,2,next_pos)
+                next_pos += 1
                 self._y_format_as_percentage(axis)
                 avg_abs_exposures.plot(ax=axis, kind="bar", title="Avg Absolute Exposure (Details)")
                 axis.set_ylabel("Percentage of capital")
 
             if performance.net_exposures is not None:
                 avg_net_exposures = performance.net_exposures.mean()
-                axis = fig.add_subplot(3,2,2)
+                axis = fig.add_subplot(rows,2,next_pos)
+                next_pos += 1
                 self._y_format_as_percentage(axis)
                 avg_net_exposures.plot(ax=axis, kind="bar", title="Avg Net Exposure (Details)")
                 axis.set_ylabel("Percentage of capital")
 
             if performance.total_holdings is not None:
                 avg_total_holdings = performance.total_holdings.mean()
-                axis = fig.add_subplot(3,2,3)
+                axis = fig.add_subplot(rows,2,next_pos)
+                next_pos += 1
                 avg_total_holdings.plot(ax=axis, kind="bar", title="Avg Daily Holdings (Details)")
                 axis.set_ylabel("Number of holdings")
 
             if performance.trades is not None:
                 avg_daily_turnover = performance.trades.abs().mean()
-                axis = fig.add_subplot(3,2,4)
+                axis = fig.add_subplot(rows,2,next_pos)
+                next_pos += 1
                 self._y_format_as_percentage(axis)
                 avg_daily_turnover.plot(ax=axis, kind="bar", title="Avg Daily Turnover (Details)")
                 axis.set_ylabel("Percentage of capital")
 
             if performance.abs_exposures is not None:
                 norm_cagrs = performance.cagr / avg_abs_exposures
-                axis = fig.add_subplot(3,2,5)
+                axis = fig.add_subplot(rows,2,next_pos)
+                next_pos += 1
                 self._y_format_as_percentage(axis)
                 norm_cagrs.plot(ax=axis, kind="bar", title="Normalized CAGR (CAGR/Absolute Exposure) (Details)")
                 axis.set_ylabel("Normalized CAGR")
