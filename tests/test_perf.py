@@ -23,6 +23,7 @@ import matplotlib as mpl
 mpl.use("Agg")
 from moonchart import DailyPerformance, AggregateDailyPerformance
 from moonchart.utils import get_zscores
+from copy import deepcopy
 
 BACKTEST_RESULTS = {
     'strategy-1': {
@@ -552,4 +553,29 @@ class DailyPerformanceTestCase(unittest.TestCase):
             perf.returns.to_dict(orient="list"),
             {'strategy-1': [-0.002257125, -0.000375271, -0.002395708],
              'strategy-2': [0.0, -0.005031677, -0.004845368]}
+        )
+
+    def test_benchmark(self):
+
+        backtest_results = deepcopy(BACKTEST_RESULTS)
+        backtest_results["strategy-1"].update(
+            {('Benchmark', '2018-12-03'): None,
+            ('Benchmark', '2018-12-04'): None,
+            ('Benchmark', '2018-12-05'): None}
+        )
+        backtest_results["strategy-2"].update(
+            {('Benchmark', '2018-12-03'): 100.10,
+            ('Benchmark', '2018-12-04'): 102.34,
+            ('Benchmark', '2018-12-05'): 102.08}
+        )
+
+        backtest_results = pd.DataFrame.from_dict(backtest_results)
+        backtest_results.index.set_names(["Field","Date"], inplace=True)
+        backtest_results.to_csv("backtest.csv")
+
+        perf = DailyPerformance.from_moonshot_csv("backtest.csv")
+
+        self.assertListEqual(
+            perf.benchmark_returns.tolist(),
+            [0.0, 0.02237762237762242, -0.002540551104162625]
         )

@@ -129,6 +129,8 @@ class BaseTearsheet(object):
 
         if isinstance(performance.cum_returns, pd.DataFrame):
             num_series = len(performance.cum_returns.columns)
+            if performance.benchmark_returns is not None:
+                num_series += 1
             if num_series > 6:
                 color_palette = sns.color_palette("hls", num_series)
 

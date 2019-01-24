@@ -381,9 +381,9 @@ class DailyPerformance(object):
             import warnings
             warnings.warn("Multiple benchmarks found, only using first ({0})".format(col))
 
-        benchmark_prices = benchmark[col]
+        benchmark_prices = self._benchmark_prices[col]
 
-        self._benchmark_returns = benchmark_prices.pct_change()
+        self._benchmark_returns = benchmark_prices.pct_change().fillna(0)
         self._benchmark_returns.name = "benchmark"
 
         return self._benchmark_returns
