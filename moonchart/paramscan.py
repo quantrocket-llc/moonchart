@@ -214,8 +214,8 @@ class ParamscanTearsheet(BaseTearsheet):
             ("Sharpe", "Sharpe"),
             ("MaxDrawdown", "Max DD"),
             ("AbsExposure", "Abs Exposure"),
-            ("TotalHoldings", "Avg Daily Holdings"),
             ("NormalizedCagr", "Normalized CAGR"),
+            ("TotalHoldings", "Avg Daily Holdings"),
         )
         fields = OrderedDict(fields)
 
