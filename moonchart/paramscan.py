@@ -248,3 +248,5 @@ class ParamscanTearsheet(BaseTearsheet):
                     cbar=False,
                     ax=axis,
                     cmap=matplotlib.cm.RdYlGn)
+
+        fig.tight_layout()
