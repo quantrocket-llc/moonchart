@@ -42,6 +42,9 @@ BACKTEST_RESULTS = {
         ('Return', '2018-12-03'): -0.002257125,
         ('Return', '2018-12-04'): -0.000375271,
         ('Return', '2018-12-05'): -0.002395708,
+        ('Slippage', '2018-12-03'): 0.0001,
+        ('Slippage', '2018-12-04'): 0.0001,
+        ('Slippage', '2018-12-05'): 0.0001,
         ('TotalHoldings', '2018-12-03'): 22.0,
         ('TotalHoldings', '2018-12-04'): 22.0,
         ('TotalHoldings', '2018-12-05'): 22.0,
@@ -64,6 +67,9 @@ BACKTEST_RESULTS = {
         ('Return', '2018-12-03'): 0.00278717,
         ('Return', '2018-12-04'): -0.005031677,
         ('Return', '2018-12-05'): -0.004845368,
+        ('Slippage', '2018-12-03'): 0.0,
+        ('Slippage', '2018-12-04'): 0.0,
+        ('Slippage', '2018-12-05'): 0.003,
         ('TotalHoldings', '2018-12-03'): 25.0,
         ('TotalHoldings', '2018-12-04'): 25.0,
         ('TotalHoldings', '2018-12-05'): 25.0,
@@ -208,6 +214,30 @@ class DailyPerformanceTestCase(unittest.TestCase):
             perf.commissions.to_dict(orient="list"),
             {'strategy-1': [0.0001, 0.0001, 0.0001], 'strategy-2': [0.0, 0.0, 0.0]})
 
+        self.assertListEqual(
+            list(perf.cum_commissions.index.strftime("%Y-%m-%d")),
+            ['2018-12-03', '2018-12-04', '2018-12-05'])
+
+        self.assertDictEqual(
+            perf.cum_commissions.to_dict(orient="list"),
+            {'strategy-1': [1.0001, 1.0002, 1.0003], 'strategy-2': [1.0, 1.0, 1.0]})
+
+        self.assertListEqual(
+            list(perf.slippages.index.strftime("%Y-%m-%d")),
+            ['2018-12-03', '2018-12-04', '2018-12-05'])
+
+        self.assertDictEqual(
+            perf.slippages.to_dict(orient="list"),
+            {'strategy-1': [0.0001, 0.0001, 0.0001], 'strategy-2': [0.0, 0.0, 0.003]})
+
+        self.assertListEqual(
+            list(perf.cum_slippages.index.strftime("%Y-%m-%d")),
+            ['2018-12-03', '2018-12-04', '2018-12-05'])
+
+        self.assertDictEqual(
+            perf.cum_slippages.to_dict(orient="list"),
+            {'strategy-1': [1.0001, 1.0002, 1.0003], 'strategy-2': [1.0, 1.0, 1.003]})
+
         self.assertDictEqual(
             perf.cagr.to_dict(),
             {'strategy-1': -0.6009354029100387, 'strategy-2': -0.7272165531290371})
@@ -294,6 +324,30 @@ class DailyPerformanceTestCase(unittest.TestCase):
             agg_perf.commissions.tolist(),
             [0.0001, 0.0001, 0.0001])
 
+        self.assertListEqual(
+            list(agg_perf.cum_commissions.index.strftime("%Y-%m-%d")),
+            ['2018-12-03', '2018-12-04', '2018-12-05'])
+
+        self.assertListEqual(
+            agg_perf.cum_commissions.tolist(),
+            [1.0001, 1.0002, 1.0003])
+
+        self.assertListEqual(
+            list(agg_perf.slippages.index.strftime("%Y-%m-%d")),
+            ['2018-12-03', '2018-12-04', '2018-12-05'])
+
+        self.assertListEqual(
+            agg_perf.slippages.tolist(),
+            [0.0001, 0.0001, 0.0031])
+
+        self.assertListEqual(
+            list(agg_perf.cum_slippages.index.strftime("%Y-%m-%d")),
+            ['2018-12-03', '2018-12-04', '2018-12-05'])
+
+        self.assertListEqual(
+            agg_perf.cum_slippages.tolist(),
+            [1.0001, 1.0002, 1.0033])
+
         self.assertEqual(
             agg_perf.cagr,-0.8912867832023363)
 
@@ -356,6 +410,14 @@ class DailyPerformanceTestCase(unittest.TestCase):
         self.assertDictEqual(
             perf.commission_amounts.to_dict(orient="list"),
             {'strategy-a': [0.0, 15.3382, 43.691], 'strategy-b': [0.0, 108.3024, 34.0915]})
+
+        self.assertListEqual(
+            list(perf.cum_commission_amounts.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+
+        self.assertDictEqual(
+            perf.cum_commission_amounts.to_dict(orient="list"),
+            {'strategy-a': [0.0, 15.3382, 59.0292], 'strategy-b': [0.0, 108.3024, 142.3939]})
 
         self.assertListEqual(
             list(perf.cum_pnl.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -442,6 +504,14 @@ class DailyPerformanceTestCase(unittest.TestCase):
         self.assertListEqual(
             agg_perf.commission_amounts.tolist(),
             [0.0, 123.6406, 77.7825])
+
+        self.assertListEqual(
+            list(agg_perf.cum_commission_amounts.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+
+        self.assertListEqual(
+            agg_perf.cum_commission_amounts.tolist(),
+            [0.0, 123.6406, 201.4231])
 
         self.assertListEqual(
             list(agg_perf.cum_pnl.index.strftime("%Y-%m-%d %H:%M:%S")),

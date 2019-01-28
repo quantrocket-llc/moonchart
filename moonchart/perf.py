@@ -127,7 +127,11 @@ class DailyPerformance(object):
         self.rolling_sharpe_window = rolling_sharpe_window
         self._benchmark_prices = benchmark
         self._benchmark_returns = None
+        self._benchmark_cum_returns = None
         self._cum_returns = None
+        self._cum_commissions = None
+        self._cum_slippages = None
+        self._cum_commission_amounts = None
         self._sharpe = None
         self._rolling_sharpe = None
         self._cagr = None
@@ -317,6 +321,30 @@ class DailyPerformance(object):
         return self._cum_returns
 
     @property
+    def cum_commissions(self):
+
+        if self._cum_commissions is None and self.commissions is not None:
+            self._cum_commissions = get_cum_returns(self.commissions, compound=False)
+
+        return self._cum_commissions
+
+    @property
+    def cum_commission_amounts(self):
+
+        if self._cum_commission_amounts is None and self.commission_amounts is not None:
+            self._cum_commission_amounts = self.commission_amounts.cumsum()
+
+        return self._cum_commission_amounts
+
+    @property
+    def cum_slippages(self):
+
+        if self._cum_slippages is None and self.slippages is not None:
+            self._cum_slippages = get_cum_returns(self.slippages, compound=False)
+
+        return self._cum_slippages
+
+    @property
     def cagr(self):
         if self._cagr is None:
             self._cagr = get_cagr(self.cum_returns, compound=self.compound)
@@ -387,6 +415,14 @@ class DailyPerformance(object):
         self._benchmark_returns.name = "benchmark"
 
         return self._benchmark_returns
+
+    @property
+    def benchmark_cum_returns(self):
+
+        if self._benchmark_cum_returns is None and self._benchmark_returns is not None:
+            self._benchmark_cum_returns = get_cum_returns(self._benchmark_returns, compound=True)
+
+        return self._benchmark_cum_returns
 
 class AggregateDailyPerformance(DailyPerformance):
     """

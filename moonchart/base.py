@@ -164,13 +164,11 @@ class BaseTearsheet(object):
                 subplot != 212 and (include_commissions or include_slippage)):
 
                 if include_commissions:
-                    commissions = performance.commissions
-                    cum_commissions_pct = get_cum_returns(commissions, compound=False)
-                    cum_commissions_pct.name = "commissions"
+                    cum_commissions = performance.cum_commissions
+                    cum_commissions.name = "commissions"
 
                 if include_slippage:
-                    slippages = performance.slippages
-                    cum_slippages = get_cum_returns(slippages, compound=False)
+                    cum_slippages = performance.cum_slippages
                     cum_slippages.name = "slippage"
 
                 performance.cum_returns.name = "returns"
@@ -178,7 +176,7 @@ class BaseTearsheet(object):
                 cum_gross_returns = performance.cum_returns
 
                 if include_commissions:
-                    cum_gross_returns = cum_gross_returns.multiply(cum_commissions_pct)
+                    cum_gross_returns = cum_gross_returns.multiply(cum_commissions)
 
                 if include_slippage:
                     cum_gross_returns = cum_gross_returns.multiply(cum_slippages)
@@ -187,7 +185,7 @@ class BaseTearsheet(object):
                 breakdown_parts = [performance.cum_returns, cum_gross_returns]
 
                 if include_commissions:
-                    breakdown_parts.append(cum_commissions_pct)
+                    breakdown_parts.append(cum_commissions)
 
                 if include_slippage:
                     breakdown_parts.append(cum_slippages)
@@ -232,9 +230,9 @@ class BaseTearsheet(object):
                     and subplot != 212
                     # if all commissions are null/0, don't show them
                     and (performance.commission_amounts.fillna(0) != 0).any()):
-                    cum_commissions = performance.commission_amounts.cumsum()
+                    cum_commissions = performance.cum_commission_amounts
                     cum_commissions.name = "commissions"
-                    cum_pnl = performance.pnl.cumsum()
+                    cum_pnl = performance.cum_pnl
                     cum_pnl.name = "pnl"
                     cum_gross_pnl = cum_pnl + cum_commissions.abs()
                     cum_gross_pnl.name = "gross pnl"
@@ -281,7 +279,7 @@ class BaseTearsheet(object):
 
                 if isinstance(performance.cum_returns, pd.Series):
                     performance.cum_returns.name = "strategy"
-                benchmark_cum_returns = get_cum_returns(performance.benchmark_returns, compound=True)
+                benchmark_cum_returns = performance.benchmark_cum_returns
                 try:
                     vs_benchmark = pd.concat((performance.cum_returns, benchmark_cum_returns), axis=1, sort=True)
                 except TypeError:
