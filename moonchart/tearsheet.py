@@ -243,8 +243,8 @@ class Tearsheet(BaseTearsheet):
 
         if agg_performance.pnl is not None:
             stats.append(["PNL", round(agg_performance.pnl.sum(), 2)])
-        if agg_performance.commissions is not None:
-            stats.append(["Commissions", round(agg_performance.commissions.sum(), 2)])
+        if agg_performance.commission_amounts is not None:
+            stats.append(["Commissions", round(agg_performance.commission_amounts.sum(), 2)])
 
         stats.append(["Start Date", agg_performance.returns.index.min().date().isoformat()])
         stats.append(["End Date", agg_performance.returns.index.max().date().isoformat()])
@@ -471,17 +471,17 @@ class Tearsheet(BaseTearsheet):
             axis = fig.add_subplot(111)
             axis.set_ylabel("PNL")
             pnl = performance.pnl.sum()
-            if performance.commissions is not None:
+            if performance.commission_amounts is not None:
                 pnl.name = "pnl"
-                commissions = performance.commissions.sum()
-                commissions.name = "commissions"
-                gross_pnl = pnl + commissions
+                commission_amounts = performance.commission_amounts.sum()
+                commission_amounts.name = "commissions"
+                gross_pnl = pnl + commission_amounts
                 gross_pnl.name = "gross pnl"
                 try:
-                    pnl = pd.concat((pnl, gross_pnl, commissions), axis=1, sort=True)
+                    pnl = pd.concat((pnl, gross_pnl, commission_amounts), axis=1, sort=True)
                 except TypeError:
                     # sort was introduced in pandas 0.23
-                    pnl = pd.concat((pnl, gross_pnl, commissions), axis=1)
+                    pnl = pd.concat((pnl, gross_pnl, commission_amounts), axis=1)
             pnl.plot(
                 ax=axis, kind="bar", title="PNL (Details)")
 

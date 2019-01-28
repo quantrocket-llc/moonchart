@@ -149,9 +149,9 @@ class BaseTearsheet(object):
                 axis.set_ylabel("Cumulative return")
 
             include_commissions = (
-                performance.commissions_pct is not None
+                performance.commissions is not None
                 # if all commissions are null/0, don't show them
-                and (performance.commissions_pct.fillna(0) != 0).any())
+                and (performance.commissions.fillna(0) != 0).any())
 
             include_slippage = (
                 performance.slippages is not None
@@ -164,8 +164,8 @@ class BaseTearsheet(object):
                 subplot != 212 and (include_commissions or include_slippage)):
 
                 if include_commissions:
-                    commissions_pct = performance.commissions_pct
-                    cum_commissions_pct = get_cum_returns(commissions_pct, compound=False)
+                    commissions = performance.commissions
+                    cum_commissions_pct = get_cum_returns(commissions, compound=False)
                     cum_commissions_pct.name = "commissions"
 
                 if include_slippage:
@@ -226,13 +226,13 @@ class BaseTearsheet(object):
                 axis = fig.add_subplot(subplot)
                 axis.set_ylabel("PNL")
                 if (
-                    performance.commissions is not None
+                    performance.commission_amounts is not None
                     # a 212 subplot means a detailed plot, which isn't compatible with
                     # showing commissions
                     and subplot != 212
                     # if all commissions are null/0, don't show them
-                    and (performance.commissions.fillna(0) != 0).any()):
-                    cum_commissions = performance.commissions.cumsum()
+                    and (performance.commission_amounts.fillna(0) != 0).any()):
+                    cum_commissions = performance.commission_amounts.cumsum()
                     cum_commissions.name = "commissions"
                     cum_pnl = performance.pnl.cumsum()
                     cum_pnl.name = "pnl"

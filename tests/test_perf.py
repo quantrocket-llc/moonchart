@@ -201,11 +201,11 @@ class DailyPerformanceTestCase(unittest.TestCase):
             {'strategy-1': [22.0, 22.0, 22.0], 'strategy-2': [25.0, 25.0, 25.0]})
 
         self.assertListEqual(
-            list(perf.commissions_pct.index.strftime("%Y-%m-%d")),
+            list(perf.commissions.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertDictEqual(
-            perf.commissions_pct.to_dict(orient="list"),
+            perf.commissions.to_dict(orient="list"),
             {'strategy-1': [0.0001, 0.0001, 0.0001], 'strategy-2': [0.0, 0.0, 0.0]})
 
         self.assertDictEqual(
@@ -287,11 +287,11 @@ class DailyPerformanceTestCase(unittest.TestCase):
             [47.0, 47.0, 47.0])
 
         self.assertListEqual(
-            list(agg_perf.commissions_pct.index.strftime("%Y-%m-%d")),
+            list(agg_perf.commissions.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertListEqual(
-            agg_perf.commissions_pct.tolist(),
+            agg_perf.commissions.tolist(),
             [0.0001, 0.0001, 0.0001])
 
         self.assertEqual(
@@ -350,11 +350,11 @@ class DailyPerformanceTestCase(unittest.TestCase):
              'strategy-b': [0.0, 501.1911, 6534.1285]})
 
         self.assertListEqual(
-            list(perf.commissions.index.strftime("%Y-%m-%d %H:%M:%S")),
+            list(perf.commission_amounts.index.strftime("%Y-%m-%d %H:%M:%S")),
             ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
 
         self.assertDictEqual(
-            perf.commissions.to_dict(orient="list"),
+            perf.commission_amounts.to_dict(orient="list"),
             {'strategy-a': [0.0, 15.3382, 43.691], 'strategy-b': [0.0, 108.3024, 34.0915]})
 
         self.assertListEqual(
@@ -367,11 +367,11 @@ class DailyPerformanceTestCase(unittest.TestCase):
             'strategy-b': [0.0, 501.1911, 7035.3196]})
 
         self.assertListEqual(
-            list(perf.commissions_pct.index.strftime("%Y-%m-%d %H:%M:%S")),
+            list(perf.commissions.index.strftime("%Y-%m-%d %H:%M:%S")),
             ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
 
         self.assertDictEqual(
-            perf.commissions_pct.to_dict(orient="list"),
+            perf.commissions.to_dict(orient="list"),
             {'strategy-a': [0.0, 2.54e-05, 7.11e-05],
              'strategy-b': [0.0, 0.000179206, 5.55e-05]})
 
@@ -436,11 +436,11 @@ class DailyPerformanceTestCase(unittest.TestCase):
             [0.0, 1233.8229000000001, 8997.4175])
 
         self.assertListEqual(
-            list(agg_perf.commissions.index.strftime("%Y-%m-%d %H:%M:%S")),
+            list(agg_perf.commission_amounts.index.strftime("%Y-%m-%d %H:%M:%S")),
             ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
 
         self.assertListEqual(
-            agg_perf.commissions.tolist(),
+            agg_perf.commission_amounts.tolist(),
             [0.0, 123.6406, 77.7825])
 
         self.assertListEqual(
@@ -452,11 +452,11 @@ class DailyPerformanceTestCase(unittest.TestCase):
            [0.0, 1233.8229000000001, 10231.240399999999])
 
         self.assertListEqual(
-            list(agg_perf.commissions_pct.index.strftime("%Y-%m-%d %H:%M:%S")),
+            list(agg_perf.commissions.index.strftime("%Y-%m-%d %H:%M:%S")),
             ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
 
         self.assertListEqual(
-            agg_perf.commissions_pct.tolist(),
+            agg_perf.commissions.tolist(),
             [0.0, 0.000204606, 0.0001266])
 
         self.assertEqual(

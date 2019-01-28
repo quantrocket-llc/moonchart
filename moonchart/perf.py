@@ -52,14 +52,14 @@ class DailyPerformance(object):
     turnover : DataFrame, optional
         a DataFrame of turnover, that is, changes to positions
 
-    commissions : DataFrame, optional
-        a DataFrame of commissions, in the base currency
+    commission_amounts : DataFrame, optional
+        a DataFrame of commission amounts, in the base currency
 
-    commissions_pct : DataFrame, optional
-        a DataFrame of commissions, in percentages
+    commissions : DataFrame, optional
+        a DataFrame of commissions, as a proportion of capital
 
     slippages : DataFrame, optional
-        a DataFrame of slippages, in percentages
+        a DataFrame of slippages, as a proportion of capital
 
     benchmark : Series, optional
         a Series of prices for a benchmark
@@ -85,8 +85,8 @@ class DailyPerformance(object):
         abs_exposures=None,
         total_holdings=None,
         turnover=None,
+        commission_amounts=None,
         commissions=None,
-        commissions_pct=None,
         slippages=None,
         benchmark=None,
         riskfree=0,
@@ -119,8 +119,8 @@ class DailyPerformance(object):
         self.abs_exposures = abs_exposures
         self.total_holdings = total_holdings
         self.turnover = turnover
+        self.commission_amounts = commission_amounts
         self.commissions = commissions
-        self.commissions_pct = commissions_pct
         self.slippages = slippages
         self.riskfree = riskfree
         self.compound = compound
@@ -164,7 +164,7 @@ class DailyPerformance(object):
         if "Turnover" in fields:
             kwargs["turnover"] = results.loc["Turnover"]
         if "Commission" in fields:
-            kwargs["commissions_pct"] = results.loc["Commission"]
+            kwargs["commissions"] = results.loc["Commission"]
         if "Slippage" in fields:
             kwargs["slippages"] = results.loc["Slippage"]
         if "Benchmark" in fields:
@@ -300,9 +300,9 @@ class DailyPerformance(object):
         if "TotalHoldings" in fields:
             kwargs["total_holdings"] = results.loc["TotalHoldings"].astype(np.float64)
         if "Commission" in fields:
-            kwargs["commissions_pct"] = results.loc["Commission"].astype(np.float64)
+            kwargs["commissions"] = results.loc["Commission"].astype(np.float64)
         if "CommissionAmount" in fields:
-            kwargs["commissions"] = results.loc["CommissionAmount"].astype(np.float64)
+            kwargs["commission_amounts"] = results.loc["CommissionAmount"].astype(np.float64)
         if "Benchmark" in fields:
             kwargs["benchmark"] = results.loc["Benchmark"].astype(np.float64)
 
@@ -454,11 +454,11 @@ class AggregateDailyPerformance(DailyPerformance):
         if performance.pnl is not None:
             self.pnl = performance.pnl.sum(axis=1)
 
+        if performance.commission_amounts is not None:
+            self.commission_amounts = performance.commission_amounts.sum(axis=1)
+
         if performance.commissions is not None:
             self.commissions = performance.commissions.sum(axis=1)
-
-        if performance.commissions_pct is not None:
-            self.commissions_pct = performance.commissions_pct.sum(axis=1)
 
         if performance.slippages is not None:
             self.slippages = performance.slippages.sum(axis=1)
