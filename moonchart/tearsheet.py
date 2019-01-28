@@ -282,7 +282,7 @@ class Tearsheet(BaseTearsheet):
             agg_performance.abs_exposures,
             agg_performance.net_exposures,
             agg_performance.total_holdings,
-            agg_performance.trades
+            agg_performance.turnover
             )]):
             stats.append(["", " Positions and Exposure"])
 
@@ -304,8 +304,8 @@ class Tearsheet(BaseTearsheet):
                 "Average Daily Holdings",
                 round(avg_daily_holdings)])
 
-        if agg_performance.trades is not None:
-            avg_daily_turnover = agg_performance.trades.abs().mean()
+        if agg_performance.turnover is not None:
+            avg_daily_turnover = agg_performance.turnover.mean()
             stats.append([
                 "Average Daily Turnover (percentage of capital)",
                 "{0}%".format(round(avg_daily_turnover * 100, 1))])
@@ -575,11 +575,11 @@ class Tearsheet(BaseTearsheet):
                 if isinstance(performance.total_holdings, pd.DataFrame):
                     self._clear_legend(plot)
 
-            if performance.trades is not None:
+            if performance.turnover is not None:
                 fig = plt.figure("Daily Turnover", figsize=figsize)
                 axis = fig.add_subplot(subplot)
                 self._y_format_as_percentage(axis)
-                turnover = performance.trades.abs()
+                turnover = performance.turnover
                 plot = turnover.plot(ax=axis, title="Daily Turnover {0}".format(extra_label))
                 axis.set_ylabel("Percentage of capital")
                 axis.set_xlabel("")
@@ -603,7 +603,7 @@ class Tearsheet(BaseTearsheet):
             performance.abs_exposures,
             performance.net_exposures,
             performance.total_holdings,
-            performance.trades,
+            performance.turnover,
             performance.abs_exposures) if field is not None])
 
         rows = math.ceil(total_plots/2)
@@ -635,8 +635,8 @@ class Tearsheet(BaseTearsheet):
                 avg_total_holdings.plot(ax=axis, kind="bar", title="Avg Daily Holdings (Details)")
                 axis.set_ylabel("Number of holdings")
 
-            if performance.trades is not None:
-                avg_daily_turnover = performance.trades.abs().mean()
+            if performance.turnover is not None:
+                avg_daily_turnover = performance.turnover.mean()
                 axis = fig.add_subplot(rows,2,next_pos)
                 next_pos += 1
                 self._y_format_as_percentage(axis)

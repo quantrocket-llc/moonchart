@@ -49,8 +49,8 @@ class DailyPerformance(object):
     total_holdings : DataFrame, optional
         a Dataframe of the number of holdings
 
-    trades : DataFrame, optional
-        a DataFrame of trades, that is, changes to positions
+    turnover : DataFrame, optional
+        a DataFrame of turnover, that is, changes to positions
 
     commissions : DataFrame, optional
         a DataFrame of commissions, in the base currency
@@ -84,7 +84,7 @@ class DailyPerformance(object):
         net_exposures=None,
         abs_exposures=None,
         total_holdings=None,
-        trades=None,
+        turnover=None,
         commissions=None,
         commissions_pct=None,
         slippages=None,
@@ -118,7 +118,7 @@ class DailyPerformance(object):
         self.net_exposures = net_exposures
         self.abs_exposures = abs_exposures
         self.total_holdings = total_holdings
-        self.trades = trades
+        self.turnover = turnover
         self.commissions = commissions
         self.commissions_pct = commissions_pct
         self.slippages = slippages
@@ -161,8 +161,8 @@ class DailyPerformance(object):
             kwargs["abs_exposures"] = results.loc["AbsExposure"]
         if "TotalHoldings" in fields:
             kwargs["total_holdings"] = results.loc["TotalHoldings"]
-        if "Trade" in fields:
-            kwargs["trades"] = results.loc["Trade"]
+        if "Turnover" in fields:
+            kwargs["turnover"] = results.loc["Turnover"]
         if "Commission" in fields:
             kwargs["commissions_pct"] = results.loc["Commission"]
         if "Slippage" in fields:
@@ -472,5 +472,5 @@ class AggregateDailyPerformance(DailyPerformance):
         if performance.total_holdings is not None:
             self.total_holdings = performance.total_holdings.sum(axis=1)
 
-        if performance.trades is not None:
-            self.trades = performance.trades.sum(axis=1)
+        if performance.turnover is not None:
+            self.turnover = performance.turnover.sum(axis=1)

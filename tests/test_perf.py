@@ -45,9 +45,9 @@ BACKTEST_RESULTS = {
         ('TotalHoldings', '2018-12-03'): 22.0,
         ('TotalHoldings', '2018-12-04'): 22.0,
         ('TotalHoldings', '2018-12-05'): 22.0,
-        ('Trade', '2018-12-03'): 0.049062049,
-        ('Trade', '2018-12-04'): 0.090909091,
-        ('Trade', '2018-12-05'): -0.151515152},
+        ('Turnover', '2018-12-03'): 0.049062049,
+        ('Turnover', '2018-12-04'): 0.090909091,
+        ('Turnover', '2018-12-05'): 0.151515152},
     'strategy-2': {
         ('AbsExposure', '2018-12-03'): 0.333333333,
         ('AbsExposure', '2018-12-04'): 0.333333333,
@@ -67,9 +67,9 @@ BACKTEST_RESULTS = {
         ('TotalHoldings', '2018-12-03'): 25.0,
         ('TotalHoldings', '2018-12-04'): 25.0,
         ('TotalHoldings', '2018-12-05'): 25.0,
-        ('Trade', '2018-12-03'): -3.47e-18,
-        ('Trade', '2018-12-04'): 0.0,
-        ('Trade', '2018-12-05'): 0.0}}
+        ('Turnover', '2018-12-03'): 3.47e-18,
+        ('Turnover', '2018-12-04'): 0.0,
+        ('Turnover', '2018-12-05'): 0.0}}
 
 PNL_RESULTS = {
     'strategy-a': {
@@ -184,13 +184,13 @@ class DailyPerformanceTestCase(unittest.TestCase):
              'strategy-2': [0.333333333, 0.333333333, 0.333333333]})
 
         self.assertListEqual(
-            list(perf.trades.index.strftime("%Y-%m-%d")),
+            list(perf.turnover.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertDictEqual(
-            perf.trades.to_dict(orient="list"),
-            {'strategy-1': [0.049062049, 0.090909091, -0.151515152],
-             'strategy-2': [-3.47e-18, 0.0, 0.0]})
+            perf.turnover.to_dict(orient="list"),
+            {'strategy-1': [0.049062049, 0.090909091, 0.151515152],
+             'strategy-2': [3.47e-18, 0.0, 0.0]})
 
         self.assertListEqual(
             list(perf.total_holdings.index.strftime("%Y-%m-%d")),
@@ -271,12 +271,12 @@ class DailyPerformanceTestCase(unittest.TestCase):
             [0.303030303, 0.393939394, 0.242424242])
 
         self.assertListEqual(
-            list(agg_perf.trades.index.strftime("%Y-%m-%d")),
+            list(agg_perf.turnover.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertListEqual(
-            agg_perf.trades.tolist(),
-            [0.049062048999999996, 0.090909091, -0.151515152])
+            agg_perf.turnover.tolist(),
+            [0.04906204900000001, 0.090909091, 0.151515152])
 
         self.assertListEqual(
             list(agg_perf.total_holdings.index.strftime("%Y-%m-%d")),
