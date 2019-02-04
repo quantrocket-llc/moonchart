@@ -3,15 +3,15 @@ This package provides backtest performance analysis and charting for [QuantRocke
 
 ## Example tear sheets
 
-Tear sheet for Moonshot backtest:
+### Moonshot backtest:
 
 ![Moonchart tear sheet](https://github.com/quantrocket-llc/moonchart/raw/master/docs/tearsheet-details-example.jpg "Example tear sheet created from a Moonshot backtest")
 
-Tear sheet for 1-dimensional parameter scan with Moonshot:
+### 1-dimensional parameter scan with Moonshot:
 
 ![Moonchart 1-d parameter scan tear sheet](https://github.com/quantrocket-llc/moonchart/raw/master/docs/paramscan-1d-example.jpg "Example tear sheet created from a Moonshot 1-d parameter scan")
 
-Tear sheet for 2-dimensional parameter scan with Moonshot:
+### 2-dimensional parameter scan with Moonshot:
 
 ![Moonchart 2-d parameter scan tear sheet](https://github.com/quantrocket-llc/moonchart/raw/master/docs/paramscan-2d-example.jpg "Example tear sheet created from a Moonshot 2-d parameter scan")
 
