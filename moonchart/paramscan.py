@@ -115,7 +115,7 @@ class ParamscanTearsheet(BaseTearsheet):
 
         with sns.axes_style("white", {'axes.linewidth': 0}):
 
-            fig = plt.figure("Parameter Scan Summary")
+            fig = plt.figure("Parameter Scan Summary", figsize=(6,6))
 
             axis = fig.add_subplot(111)
             axis.get_xaxis().set_visible(False)

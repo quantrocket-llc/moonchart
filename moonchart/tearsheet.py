@@ -318,7 +318,7 @@ class Tearsheet(BaseTearsheet):
 
         with sns.axes_style("white", {'axes.linewidth': 0}):
 
-            fig = plt.figure("Performance Summary")
+            fig = plt.figure("Performance Summary", figsize=(6,6))
 
             axis = fig.add_subplot(111)
             axis.get_xaxis().set_visible(False)
@@ -347,7 +347,7 @@ class Tearsheet(BaseTearsheet):
         """
         with sns.axes_style("white", {'axes.linewidth': 0}):
 
-            fig = plt.figure("Strategies or Securities")
+            fig = plt.figure("Strategies or Securities", figsize=(6,6))
 
             axis = fig.add_subplot(111)
             axis.get_xaxis().set_visible(False)
