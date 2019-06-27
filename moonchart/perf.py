@@ -22,9 +22,11 @@ from .utils import (
     get_rolling_sharpe,
     get_cagr,
     get_cum_returns,
-    get_drawdowns)
+    get_drawdowns,
+    intraday_to_daily)
 
-from quantrocket.moonshot import read_moonshot_csv, intraday_to_daily
+from quantrocket.moonshot import read_moonshot_csv
+from quantrocket.blotter import read_pnl_csv
 
 class DailyPerformance(object):
     """
@@ -140,16 +142,25 @@ class DailyPerformance(object):
         self._cum_pnl = None
 
     @classmethod
-    def _from_moonshot(cls, results,
-                       trim_outliers=None,
-                       riskfree=0,
-                       compound=True,
-                       rolling_sharpe_window=200):
+    def _from_moonshot_or_pnl(cls, results,
+                              start_date=None,
+                              end_date=None,
+                              trim_outliers=None,
+                              riskfree=0,
+                              compound=True,
+                              rolling_sharpe_window=200):
         """
-        Creates a DailyPerformance instance from a moonshot backtest results DataFrame.
+        Creates a DailyPerformance instance from a moonshot backtest results
+        DataFrame or a PNL DataFrame.
         """
         if "Time" in results.index.names:
             results = intraday_to_daily(results)
+
+        if start_date:
+            results = results[results.index.get_level_values("Date") >= start_date]
+
+        if end_date:
+            results = results[results.index.get_level_values("Date") <= end_date]
 
         fields = results.index.get_level_values("Field").unique()
         kwargs = dict(
@@ -169,6 +180,8 @@ class DailyPerformance(object):
             kwargs["turnover"] = results.loc["Turnover"]
         if "Commission" in fields:
             kwargs["commissions"] = results.loc["Commission"]
+        if "CommissionAmount" in fields:
+            kwargs["commission_amounts"] = results.loc["CommissionAmount"].astype(np.float64)
         if "Slippage" in fields:
             kwargs["slippages"] = results.loc["Slippage"]
         if "Benchmark" in fields:
@@ -178,6 +191,8 @@ class DailyPerformance(object):
 
     @classmethod
     def from_moonshot_csv(cls, filepath_or_buffer,
+                          start_date=None,
+                          end_date=None,
                           trim_outliers=None,
                           riskfree=0,
                           compound=True,
@@ -189,6 +204,12 @@ class DailyPerformance(object):
         ----------
         filepath_or_buffer : str or file-like object
             filepath or file-like object of the CSV
+
+        start_date : str (YYYY-MM-DD), optional
+            truncate at this start date (otherwise include entire date range)
+
+        end_date : str (YYYY-MM-DD), optional
+            truncate at this end date (otherwise include entire date range)
 
         trim_outliers: int or float, optional
             discard returns that are more than this many standard deviations from
@@ -228,18 +249,23 @@ class DailyPerformance(object):
             else:
                 raise
 
-        return cls._from_moonshot(
-            results, trim_outliers=trim_outliers,
+        return cls._from_moonshot_or_pnl(
+            results,
+            start_date=start_date,
+            end_date=end_date,
+            trim_outliers=trim_outliers,
             riskfree=riskfree,
             compound=compound,
             rolling_sharpe_window=rolling_sharpe_window)
 
     @classmethod
     def from_pnl_csv(cls, filepath_or_buffer,
-                          trim_outliers=None,
-                          riskfree=0,
-                          compound=True,
-                          rolling_sharpe_window=200):
+                     start_date=None,
+                     end_date=None,
+                     trim_outliers=None,
+                     riskfree=0,
+                     compound=True,
+                     rolling_sharpe_window=200):
         """
         Creates a DailyPerformance instance from a PNL CSV.
 
@@ -247,6 +273,12 @@ class DailyPerformance(object):
         ----------
         filepath_or_buffer : str or file-like object
             filepath or file-like object of the CSV
+
+        start_date : str (YYYY-MM-DD), optional
+            truncate at this start date (otherwise include entire date range)
+
+        end_date : str (YYYY-MM-DD), optional
+            truncate at this end date (otherwise include entire date range)
 
         trim_outliers: int or float, optional
             discard returns that are more than this many standard deviations from the mean
@@ -271,46 +303,16 @@ class DailyPerformance(object):
         >>> perf = DailyPerformance.from_pnl_csv("pnl.csv")
         >>> perf.cum_returns.plot()
         """
-        results = read_moonshot_csv(filepath_or_buffer)
+        results = read_pnl_csv(filepath_or_buffer)
 
-        return cls._from_pnl(
-            results, trim_outliers=trim_outliers,
-            riskfree=riskfree,
-            compound=compound,
-            rolling_sharpe_window=rolling_sharpe_window)
-
-    @classmethod
-    def _from_pnl(cls, results,
-                  trim_outliers=None,
-                  riskfree=0,
-                  compound=True,
-                  rolling_sharpe_window=200):
-        """
-        Creates a DailyPerformance instance from a PNL results DataFrame.
-        """
-        fields = results.index.get_level_values("Field").unique()
-        kwargs = dict(
+        return cls._from_moonshot_or_pnl(
+            results,
+            start_date=start_date,
+            end_date=end_date,
             trim_outliers=trim_outliers,
             riskfree=riskfree,
             compound=compound,
-            rolling_sharpe_window=rolling_sharpe_window
-        )
-        kwargs["returns"] = results.loc["Return"].astype(np.float64)
-        kwargs["pnl"] = results.loc["Pnl"].astype(np.float64)
-        if "NetExposure" in fields:
-            kwargs["net_exposures"] = results.loc["NetExposure"].astype(np.float64)
-        if "AbsExposure" in fields:
-            kwargs["abs_exposures"] = results.loc["AbsExposure"].astype(np.float64)
-        if "TotalHoldings" in fields:
-            kwargs["total_holdings"] = results.loc["TotalHoldings"].astype(np.float64)
-        if "Commission" in fields:
-            kwargs["commissions"] = results.loc["Commission"].astype(np.float64)
-        if "CommissionAmount" in fields:
-            kwargs["commission_amounts"] = results.loc["CommissionAmount"].astype(np.float64)
-        if "Benchmark" in fields:
-            kwargs["benchmark"] = results.loc["Benchmark"].astype(np.float64)
-
-        return cls(**kwargs)
+            rolling_sharpe_window=rolling_sharpe_window)
 
     @property
     def cum_returns(self):

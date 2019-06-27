@@ -15,7 +15,6 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from quantrocket.moonshot import read_moonshot_csv, intraday_to_daily
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import math
@@ -249,7 +248,8 @@ class Tearsheet(BaseTearsheet):
         stats.append(["Start Date", agg_performance.returns.index.min().date().isoformat()])
         stats.append(["End Date", agg_performance.returns.index.max().date().isoformat()])
 
-        stats.append(['Total Months', int(len(agg_performance.returns) / 22)])
+        stats.append(['Total Months', round(
+            (agg_performance.returns.index.max() - agg_performance.returns.index.min()) / pd.Timedelta(1, 'M'))])
 
         stats.append(["", " Risk and Returns"])
         stats.append(["CAGR", "{0}%".format(round(agg_performance.cagr * 100, 1))])

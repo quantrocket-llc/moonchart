@@ -68,18 +68,26 @@ class BaseTearsheet(object):
         else:
             plt.show()
 
-    def _y_format_as_percentage(self, axis):
+    def _y_format_as_percentage(self, axis, max_decimal_places=1):
         """
         Sets a Y-axis formatter that converts a decimal to a percentage (e.g.
         0.12 -> 12.0%)
         """
         def format_as_pct(x, pos):
-            # Round to 1 decimal place (12.1%) unless it doesn't matter (12%
+            # Round to max_decimal_places (12.1%) unless it doesn't matter (12%
             # not 12.0%)
-            if round(x,2) == round(x,3):
-                return '{:.0%}'.format(x)
-            else:
-                return '{:.1%}'.format(x)
+            decimal_places = max_decimal_places
+
+            while decimal_places > 0:
+                rounded_result = round(x, decimal_places+2)
+                more_rounded_result = round(x, decimal_places+1)
+
+                if rounded_result != more_rounded_result:
+                    return ('{:.%d%%}' % decimal_places).format(x)
+
+                decimal_places -= 1
+
+            return '{:.0%}'.format(x)
 
         y_axis_formatter = FuncFormatter(format_as_pct)
         axis.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))

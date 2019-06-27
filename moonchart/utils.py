@@ -14,6 +14,7 @@
 
 import pandas as pd
 import numpy as np
+from .exceptions import MoonchartError
 
 def get_zscores(returns):
     """
@@ -271,3 +272,108 @@ def get_top_movers(returns, n=10):
         top_movers = pd.concat((returns.head(n), returns.tail(n)))
 
     return top_movers
+
+def intraday_to_daily(results, how=None):
+    """
+    Roll up a DataFrame of intraday performance results to daily, dropping
+    the "Time" level from the multi-index.
+
+    The following aggregation methods are supported:
+
+    extreme: min or max of day, whichever is of greater absolute magnitude
+    last: last value of day
+    max: max of day
+    mean: mean of day
+    sum: sum of day
+
+    By default, supported fields are aggregated as follows:
+
+    AbsExposure: max
+    AbsWeight: max
+    Benchmark: last
+    Commission: sum
+    CommissionAmount: sum
+    NetExposure: extreme
+    NetLiquidation: mean
+    Pnl: sum
+    PositionQuantity: extreme
+    PositionValue: extreme
+    Price: last
+    Return: sum
+    Slippage: sum
+    TotalHoldings: max
+    Turnover: sum
+    Weight: extreme
+
+    This can be overridden with the `how` parameter.
+
+    Parameters
+    ----------
+    results : DataFrame, required
+         a DataFrame of intraday Moonshot backtest results or PNL results, with
+         a "Time" level in the index
+
+    how : dict, optional
+        a dict of {fieldname: aggregation method} specifying how to aggregate
+        fields. This is combined with and overrides the default methods.
+
+    Returns
+    -------
+    DataFrame
+        a DataFrame of daily results, without a "Time" level in the index
+
+    Examples
+    --------
+    Convert intraday Moonshot results to daily:
+
+    >>> intraday_results = read_moonshot_csv("moonshot_intraday_backtest.csv")
+    >>> daily_results = intraday_to_daily(intraday_results)
+    """
+    if "Time" not in results.index.names:
+        raise MoonchartError("results DataFrame must have 'Time' level in index")
+
+    fields_in_results = results.index.get_level_values("Field").unique()
+
+    daily_results = {}
+
+    # how to aggregate by field
+    field_hows = {
+        'AbsExposure': 'max',
+        'AbsWeight': 'max',
+        'Benchmark': 'last',
+        'Commission': 'sum',
+        'CommissionAmount': 'sum',
+        'NetExposure': 'extreme',
+        'NetLiquidation': 'mean',
+        'Pnl': 'sum',
+        'PositionQuantity': 'extreme',
+        'PositionValue': 'extreme',
+        'Price': 'last' ,
+        'Return': 'sum',
+        'Slippage': 'sum',
+        'TotalHoldings': 'max',
+        'Turnover': 'sum',
+        'Weight': 'extreme',
+    }
+
+    if how:
+        field_hows.update(how)
+
+    for field in fields_in_results:
+        if field not in field_hows:
+            continue
+
+        field_how = field_hows[field]
+
+        field_results = results.loc[field].astype(pd.np.float64)
+        grouped = field_results.groupby(field_results.index.get_level_values("Date"))
+
+        if field_how == "extreme":
+            mins = field_results.groupby(field_results.index.get_level_values("Date")).min()
+            maxes = field_results.groupby(field_results.index.get_level_values("Date")).max()
+            daily_results[field] = mins.where(mins.abs()>maxes.abs(), maxes)
+        else:
+            daily_results[field] = getattr(grouped, field_how)()
+
+    daily_results = pd.concat(daily_results, names=["Field","Date"])
+    return daily_results
