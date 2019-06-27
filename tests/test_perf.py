@@ -79,61 +79,84 @@ BACKTEST_RESULTS = {
 
 PNL_RESULTS = {
     'strategy-a': {
-        ('AbsExposure', '2019-01-21 23:59:59'): '0',
-        ('AbsExposure', '2019-01-22 23:59:59'): '0',
-        ('AbsExposure', '2019-01-23 23:59:59'): '0',
-        ('Account', '2019-01-21 23:59:59'): 'U12345',
-        ('Account', '2019-01-22 23:59:59'): 'U12345',
-        ('Account', '2019-01-23 23:59:59'): 'U12345',
-        ('Commission', '2019-01-21 23:59:59'): '0',
-        ('Commission', '2019-01-22 23:59:59'): '2.54E-05',
-        ('Commission', '2019-01-23 23:59:59'): '7.11E-05',
-        ('CommissionAmount', '2019-01-21 23:59:59'): '0',
-        ('CommissionAmount', '2019-01-22 23:59:59'): '15.3382',
-        ('CommissionAmount', '2019-01-23 23:59:59'): '43.691',
-        ('NetExposure', '2019-01-21 23:59:59'): '0',
-        ('NetExposure', '2019-01-22 23:59:59'): '0',
-        ('NetExposure', '2019-01-23 23:59:59'): '0',
-        ('NetLiquidation', '2019-01-21 23:59:59'): '604431.98',
-        ('NetLiquidation', '2019-01-22 23:59:59'): '604346.46',
-        ('NetLiquidation', '2019-01-23 23:59:59'): '614640.04',
-        ('OrderRef', '2019-01-21 23:59:59'): 'strategy-a',
-        ('OrderRef', '2019-01-22 23:59:59'): 'strategy-a',
-        ('OrderRef', '2019-01-23 23:59:59'): 'strategy-a',
-        ('Pnl', '2019-01-21 23:59:59'): '0',
-        ('Pnl', '2019-01-22 23:59:59'): '732.6318',
-        ('Pnl', '2019-01-23 23:59:59'): '2463.289',
-        ('Return', '2019-01-21 23:59:59'): '0',
-        ('Return', '2019-01-22 23:59:59'): '0.00121226',
-        ('Return', '2019-01-23 23:59:59'): '0.00400769'},
+        ('AbsExposure', '2019-01-21', '09:30:00'): '0',
+        ('AbsExposure', '2019-01-21', '09:31:00'): '0.01',
+        ('AbsExposure', '2019-01-22', '16:01:00'): '0',
+        ('AbsExposure', '2019-01-23', '23:59:59'): '0',
+        ('Account', '2019-01-21', '09:30:00'): 'U12345',
+        ('Account', '2019-01-21', '09:31:00'): 'U12345',
+        ('Account', '2019-01-22', '16:01:00'): 'U12345',
+        ('Account', '2019-01-23', '23:59:59'): 'U12345',
+        ('Commission', '2019-01-21', '09:30:00'): '0',
+        ('Commission', '2019-01-21', '09:31:00'): '0',
+        ('Commission', '2019-01-22', '16:01:00'): '2.54E-05',
+        ('Commission', '2019-01-23', '23:59:59'): '7.11E-05',
+        ('CommissionAmount', '2019-01-21', '09:30:00'): '0',
+        ('CommissionAmount', '2019-01-21', '09:31:00'): '0',
+        ('CommissionAmount', '2019-01-22', '16:01:00'): '15.3382',
+        ('CommissionAmount', '2019-01-23', '23:59:59'): '43.691',
+        ('NetExposure', '2019-01-21', '09:30:00'): '0',
+        ('NetExposure', '2019-01-21', '09:31:00'): '-0.01',
+        ('NetExposure', '2019-01-22', '16:01:00'): '0',
+        ('NetExposure', '2019-01-23', '23:59:59'): '0',
+        ('NetLiquidation', '2019-01-21', '09:30:00'): '604431.98',
+        ('NetLiquidation', '2019-01-21', '09:31:00'): '604431.98',
+        ('NetLiquidation', '2019-01-22', '16:01:00'): '604346.46',
+        ('NetLiquidation', '2019-01-23', '23:59:59'): '614640.04',
+        ('OrderRef', '2019-01-21', '09:30:00'): 'strategy-a',
+        ('OrderRef', '2019-01-21', '09:31:00'): 'strategy-a',
+        ('OrderRef', '2019-01-22', '16:01:00'): 'strategy-a',
+        ('OrderRef', '2019-01-23', '23:59:59'): 'strategy-a',
+        ('Pnl', '2019-01-21', '09:30:00'): '0',
+        ('Pnl', '2019-01-21', '09:31:00'): '0',
+        ('Pnl', '2019-01-22', '16:01:00'): '732.6318',
+        ('Pnl', '2019-01-23', '23:59:59'): '2463.289',
+        ('Return', '2019-01-21', '09:30:00'): '0',
+        ('Return', '2019-01-21', '09:31:00'): '0',
+        ('Return', '2019-01-22', '16:01:00'): '0.00121226',
+        ('Return', '2019-01-23', '23:59:59'): '0.00400769',
+        ('TotalHoldings', '2019-01-21', '09:30:00'): 25.0,
+        ('TotalHoldings', '2019-01-21', '09:31:00'): 26,
+        ('TotalHoldings', '2019-01-22', '16:01:0'): 25.0,
+        ('TotalHoldings', '2019-01-23', '23:59:59'): 25.0,
+        ('Turnover', '2019-01-21', '09:30:00'): 3.47e-18,
+        ('Turnover', '2019-01-21', '09:31:00'): 0,
+        ('Turnover', '2019-01-22', '16:01:0'): 0.0,
+        ('Turnover', '2019-01-23', '23:59:59'): 0.0},
     'strategy-b': {
-        ('AbsExposure', '2019-01-21 23:59:59'): '0',
-        ('AbsExposure', '2019-01-22 23:59:59'): '0',
-        ('AbsExposure', '2019-01-23 23:59:59'): '0',
-        ('Account', '2019-01-21 23:59:59'): 'U12345',
-        ('Account', '2019-01-22 23:59:59'): 'U12345',
-        ('Account', '2019-01-23 23:59:59'): 'U12345',
-        ('Commission', '2019-01-21 23:59:59'): '0',
-        ('Commission', '2019-01-22 23:59:59'): '0.000179206',
-        ('Commission', '2019-01-23 23:59:59'): '5.55E-05',
-        ('CommissionAmount', '2019-01-21 23:59:59'): '0',
-        ('CommissionAmount', '2019-01-22 23:59:59'): '108.3024',
-        ('CommissionAmount', '2019-01-23 23:59:59'): '34.0915',
-        ('NetExposure', '2019-01-21 23:59:59'): '0',
-        ('NetExposure', '2019-01-22 23:59:59'): '0',
-        ('NetExposure', '2019-01-23 23:59:59'): '0',
-        ('NetLiquidation', '2019-01-21 23:59:59'): '604431.98',
-        ('NetLiquidation', '2019-01-22 23:59:59'): '604346.46',
-        ('NetLiquidation', '2019-01-23 23:59:59'): '614640.04',
-        ('OrderRef', '2019-01-21 23:59:59'): 'strategy-b',
-        ('OrderRef', '2019-01-22 23:59:59'): 'strategy-b',
-        ('OrderRef', '2019-01-23 23:59:59'): 'strategy-b',
-        ('Pnl', '2019-01-21 23:59:59'): '0',
-        ('Pnl', '2019-01-22 23:59:59'): '501.1911',
-        ('Pnl', '2019-01-23 23:59:59'): '6534.1285',
-        ('Return', '2019-01-21 23:59:59'): '0',
-        ('Return', '2019-01-22 23:59:59'): '0.0008293',
-        ('Return', '2019-01-23 23:59:59'): '0.01063083'}}
+        ('AbsExposure', '2019-01-21', '09:30:00'): '0',
+        ('AbsExposure', '2019-01-22', '16:01:00'): '0',
+        ('AbsExposure', '2019-01-23', '23:59:59'): '0',
+        ('Account', '2019-01-21', '09:30:00'): 'U12345',
+        ('Account', '2019-01-22', '16:01:00'): 'U12345',
+        ('Account', '2019-01-23', '23:59:59'): 'U12345',
+        ('Commission', '2019-01-21', '09:30:00'): '0',
+        ('Commission', '2019-01-22', '16:01:00'): '0.000179206',
+        ('Commission', '2019-01-23', '23:59:59'): '5.55E-05',
+        ('CommissionAmount', '2019-01-21', '09:30:00'): '0',
+        ('CommissionAmount', '2019-01-22', '16:01:00'): '108.3024',
+        ('CommissionAmount', '2019-01-23', '23:59:59'): '34.0915',
+        ('NetExposure', '2019-01-21', '09:30:00'): '0',
+        ('NetExposure', '2019-01-22', '16:01:00'): '0',
+        ('NetExposure', '2019-01-23', '23:59:59'): '0',
+        ('NetLiquidation', '2019-01-21', '09:30:00'): '604431.98',
+        ('NetLiquidation', '2019-01-22', '16:01:00'): '604346.46',
+        ('NetLiquidation', '2019-01-23', '23:59:59'): '614640.04',
+        ('OrderRef', '2019-01-21', '09:30:00'): 'strategy-b',
+        ('OrderRef', '2019-01-22', '16:01:00'): 'strategy-b',
+        ('OrderRef', '2019-01-23', '23:59:59'): 'strategy-b',
+        ('Pnl', '2019-01-21', '09:30:00'): '0',
+        ('Pnl', '2019-01-22', '16:01:00'): '501.1911',
+        ('Pnl', '2019-01-23', '23:59:59'): '6534.1285',
+        ('Return', '2019-01-21', '09:30:00'): '0',
+        ('Return', '2019-01-22', '16:01:00'): '0.0008293',
+        ('Return', '2019-01-23', '23:59:59'): '0.01063083',
+        ('TotalHoldings', '2019-01-21', '09:30:00'): 15.0,
+        ('TotalHoldings', '2019-01-22', '16:01:00'): 20.0,
+        ('TotalHoldings', '2019-01-23', '23:59:59'): 22.0,
+        ('Turnover', '2019-01-21', '09:30:00'): 3.47e-18,
+        ('Turnover', '2019-01-22', '16:01:00'): 0.01,
+        ('Turnover', '2019-01-23', '23:59:59'): 0.02}}
 
 class DailyPerformanceTestCase(unittest.TestCase):
     """
@@ -149,7 +172,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
         backtest_results.to_csv("backtest.csv")
 
         pnl_results = pd.DataFrame.from_dict(PNL_RESULTS)
-        pnl_results.index.set_names(["Field","Date"], inplace=True)
+        pnl_results.index.set_names(["Field","Date", "Time"], inplace=True)
         pnl_results.to_csv("pnl.csv")
 
     def tearDown(self):
@@ -376,10 +399,12 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
     def test_from_pnl_csv(self):
 
+        self.maxDiff = None
+
         perf = DailyPerformance.from_pnl_csv("pnl.csv")
         self.assertListEqual(
             list(perf.returns.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59']
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00']
         )
         self.assertDictEqual(
             perf.returns.to_dict(orient="list"),
@@ -388,15 +413,39 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(perf.abs_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
             perf.abs_exposures.to_dict(orient="list"),
-            {'strategy-a': [0.0, 0.0, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
+            {'strategy-a': [0.01, 0.0, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
+
+        self.assertListEqual(
+            list(perf.net_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
+
+        self.assertDictEqual(
+            perf.net_exposures.to_dict(orient="list"),
+            {'strategy-a': [-0.01, 0.0, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
+
+        self.assertListEqual(
+            list(perf.turnover.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
+
+        self.assertDictEqual(
+            perf.turnover.to_dict(orient="list"),
+            {'strategy-a': [3.47e-18, 0.0, 0.0], 'strategy-b': [3.47e-18, 0.01, 0.02]})
+
+        self.assertListEqual(
+            list(perf.total_holdings.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
+
+        self.assertDictEqual(
+            perf.total_holdings.to_dict(orient="list"),
+            {'strategy-a': [26.0, 25.0, 25.0], 'strategy-b': [15.0, 20.0, 22.0]})
 
         self.assertListEqual(
             list(perf.pnl.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
             perf.pnl.to_dict(orient="list"),
@@ -405,7 +454,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(perf.commission_amounts.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
             perf.commission_amounts.to_dict(orient="list"),
@@ -413,7 +462,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(perf.cum_commission_amounts.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
             perf.cum_commission_amounts.to_dict(orient="list"),
@@ -421,7 +470,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(perf.cum_pnl.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
             perf.cum_pnl.to_dict(orient="list"),
@@ -430,7 +479,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(perf.commissions.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
             perf.commissions.to_dict(orient="list"),
@@ -448,7 +497,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(perf.cum_returns.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
             perf.cum_returns.to_dict(orient="list"),
@@ -458,7 +507,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(perf.drawdowns.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
             perf.drawdowns.to_dict(orient="list"),
@@ -475,7 +524,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(agg_perf.returns.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59']
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00']
         )
         self.assertListEqual(
             agg_perf.returns.tolist(),
@@ -483,15 +532,39 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(agg_perf.abs_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
             agg_perf.abs_exposures.tolist(),
-            [0.0, 0.0, 0.0])
+            [0.01, 0.0, 0.0])
+
+        self.assertListEqual(
+            list(agg_perf.net_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
+
+        self.assertListEqual(
+            agg_perf.net_exposures.tolist(),
+            [-0.01, 0.0, 0.0])
+
+        self.assertListEqual(
+            list(agg_perf.turnover.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
+
+        self.assertListEqual(
+            agg_perf.turnover.tolist(),
+            [6.94e-18, 0.01, 0.02])
+
+        self.assertListEqual(
+            list(agg_perf.total_holdings.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
+
+        self.assertListEqual(
+            agg_perf.total_holdings.tolist(),
+            [41.0, 45.0, 47.0])
 
         self.assertListEqual(
             list(agg_perf.pnl.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
             agg_perf.pnl.tolist(),
@@ -499,7 +572,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(agg_perf.commission_amounts.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
             agg_perf.commission_amounts.tolist(),
@@ -507,7 +580,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(agg_perf.cum_commission_amounts.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
             agg_perf.cum_commission_amounts.tolist(),
@@ -515,7 +588,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(agg_perf.cum_pnl.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
             agg_perf.cum_pnl.tolist(),
@@ -523,7 +596,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(agg_perf.commissions.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
             agg_perf.commissions.tolist(),
@@ -537,7 +610,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(agg_perf.cum_returns.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
             agg_perf.cum_returns.tolist(),
@@ -546,7 +619,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             list(agg_perf.drawdowns.index.strftime("%Y-%m-%d %H:%M:%S")),
-            ['2019-01-21 23:59:59', '2019-01-22 23:59:59', '2019-01-23 23:59:59'])
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
             agg_perf.drawdowns.tolist(),
@@ -554,6 +627,52 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertEqual(
             agg_perf.max_drawdown, 0.0)
+
+    def test_override_how_to_aggregate(self):
+
+        self.maxDiff = None
+
+        perf = DailyPerformance.from_pnl_csv("pnl.csv", how_to_aggregate={"TotalHoldings":"mean"})
+        self.assertListEqual(
+            list(perf.returns.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00']
+        )
+        self.assertDictEqual(
+            perf.returns.to_dict(orient="list"),
+            {'strategy-a': [0.0, 0.00121226, 0.00400769],
+             'strategy-b': [0.0, 0.0008293, 0.01063083]})
+
+        self.assertListEqual(
+            list(perf.abs_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
+
+        self.assertDictEqual(
+            perf.abs_exposures.to_dict(orient="list"),
+            {'strategy-a': [0.01, 0.0, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
+
+        self.assertListEqual(
+            list(perf.net_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
+
+        self.assertDictEqual(
+            perf.net_exposures.to_dict(orient="list"),
+            {'strategy-a': [-0.01, 0.0, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
+
+        self.assertListEqual(
+            list(perf.turnover.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
+
+        self.assertDictEqual(
+            perf.turnover.to_dict(orient="list"),
+            {'strategy-a': [3.47e-18, 0.0, 0.0], 'strategy-b': [3.47e-18, 0.01, 0.02]})
+
+        self.assertListEqual(
+            list(perf.total_holdings.index.strftime("%Y-%m-%d %H:%M:%S")),
+            ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
+
+        self.assertDictEqual(
+            perf.total_holdings.to_dict(orient="list"),
+            {'strategy-a': [25.5, 25.0, 25.0], 'strategy-b': [15.0, 20.0, 22.0]})
 
     def test_riskfree(self):
 

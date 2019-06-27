@@ -146,6 +146,7 @@ class DailyPerformance(object):
                               start_date=None,
                               end_date=None,
                               trim_outliers=None,
+                              how_to_aggregate=None,
                               riskfree=0,
                               compound=True,
                               rolling_sharpe_window=200):
@@ -154,7 +155,7 @@ class DailyPerformance(object):
         DataFrame or a PNL DataFrame.
         """
         if "Time" in results.index.names:
-            results = intraday_to_daily(results)
+            results = intraday_to_daily(results, how=how_to_aggregate)
 
         if start_date:
             results = results[results.index.get_level_values("Date") >= start_date]
@@ -170,6 +171,9 @@ class DailyPerformance(object):
             rolling_sharpe_window=rolling_sharpe_window
         )
         kwargs["returns"] = results.loc["Return"]
+
+        if "Pnl" in fields:
+            kwargs["pnl"] = results.loc["Pnl"]
         if "NetExposure" in fields:
             kwargs["net_exposures"] = results.loc["NetExposure"]
         if "AbsExposure" in fields:
@@ -263,6 +267,7 @@ class DailyPerformance(object):
                      start_date=None,
                      end_date=None,
                      trim_outliers=None,
+                     how_to_aggregate=None,
                      riskfree=0,
                      compound=True,
                      rolling_sharpe_window=200):
@@ -282,6 +287,11 @@ class DailyPerformance(object):
 
         trim_outliers: int or float, optional
             discard returns that are more than this many standard deviations from the mean
+
+        how_to_aggregate : dict, optional
+            a dict of {fieldname: aggregation method} specifying how to aggregate
+            fields from intraday to daily. See the docstring for
+            `moonchart.utils.intraday_to_daily` for more details.
 
         riskfree : float, optional
             the riskfree rate (default 0)
@@ -310,6 +320,7 @@ class DailyPerformance(object):
             start_date=start_date,
             end_date=end_date,
             trim_outliers=trim_outliers,
+            how_to_aggregate=how_to_aggregate,
             riskfree=riskfree,
             compound=compound,
             rolling_sharpe_window=rolling_sharpe_window)

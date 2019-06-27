@@ -18,9 +18,10 @@ import unittest
 import os
 import pandas as pd
 from quantrocket.moonshot import read_moonshot_csv
+from quantrocket.blotter import read_pnl_csv
 from moonchart.utils import intraday_to_daily
 
-INTRADAY_AGGREGATE_RESULTS = {
+MOONSHOT_INTRADAY_AGGREGATE_RESULTS = {
     'fx-revert': {
         ('AbsExposure', '2018-12-18', '09:00:00'): 0.0,
         ('AbsExposure', '2018-12-18', '10:00:00'): 0.0,
@@ -78,7 +79,7 @@ INTRADAY_AGGREGATE_RESULTS = {
         ('Turnover', '2018-12-19', '11:00:00'): 0.1}
 }
 
-INTRADAY_DETAILED_RESULTS = {
+MOONSHOT_INTRADAY_DETAILED_RESULTS = {
     'EUR.USD(12087792)': {
         ('AbsExposure', '2018-12-18', '09:00:00'): 0.0,
         ('AbsExposure', '2018-12-18', '10:00:00'): 0.0,
@@ -227,6 +228,435 @@ INTRADAY_DETAILED_RESULTS = {
         ('Weight', '2018-12-19', '11:00:00'): 0.2}
  }
 
+
+PNL_INTRADAY_AGGREGATE_RESULTS = {
+    'my-strategy': {
+        ('AbsExposure', '2019-06-24', '09:30:00'): 0.04696045,
+        ('AbsExposure', '2019-06-24', '09:30:01'): 0.0582176,
+        ('AbsExposure', '2019-06-24', '09:30:02'): 0.07179037,
+        ('AbsExposure', '2019-06-24', '09:30:57'): 0.09748141,
+        ('AbsExposure', '2019-06-24', '16:02:02'): 0.07268263,
+        ('AbsExposure', '2019-06-24', '16:02:32'): 0.04785271,
+        ('AbsExposure', '2019-06-24', '16:02:57'): 0.02569104,
+        ('AbsExposure', '2019-06-24', '16:07:54'): 0.0,
+        ('AbsExposure', '2019-06-25', '09:30:00'): 0.07527931,
+        ('AbsExposure', '2019-06-25', '16:00:01'): 0.05038042,
+        ('AbsExposure', '2019-06-25', '16:00:02'): 0.02493937,
+        ('AbsExposure', '2019-06-25', '16:02:01'): 0.0,
+        ('Account', '2019-06-24', '09:30:00'): 'DU12345',
+        ('Account', '2019-06-24', '09:30:01'): 'DU12345',
+        ('Account', '2019-06-24', '09:30:02'): 'DU12345',
+        ('Account', '2019-06-24', '09:30:57'): 'DU12345',
+        ('Account', '2019-06-24', '16:02:02'): 'DU12345',
+        ('Account', '2019-06-24', '16:02:32'): 'DU12345',
+        ('Account', '2019-06-24', '16:02:57'): 'DU12345',
+        ('Account', '2019-06-24', '16:07:54'): 'DU12345',
+        ('Account', '2019-06-25', '09:30:00'): 'DU12345',
+        ('Account', '2019-06-25', '16:00:01'): 'DU12345',
+        ('Account', '2019-06-25', '16:00:02'): 'DU12345',
+        ('Account', '2019-06-25', '16:02:01'): 'DU12345',
+        ('Commission', '2019-06-24', '09:30:00'): 0.00013768363023328027,
+        ('Commission', '2019-06-24', '09:30:01'): 7.868416972425307e-06,
+        ('Commission', '2019-06-24', '09:30:02'): 9.487026303954644e-06,
+        ('Commission', '2019-06-24', '09:30:57'): 1.4474058363780997e-06,
+        ('Commission', '2019-06-24', '16:02:02'): 2.2104505762907916e-06,
+        ('Commission', '2019-06-24', '16:02:32'): 1.6174620270380795e-05,
+        ('Commission', '2019-06-24', '16:02:57'): 8.287424721657411e-05,
+        ('Commission', '2019-06-24', '16:07:54'): 8.264892587397508e-07,
+        ('Commission', '2019-06-25', '09:30:00'): 1.6693486908763242e-05,
+        ('Commission', '2019-06-25', '16:00:01'): 2.223209635392976e-06,
+        ('Commission', '2019-06-25', '16:00:02'): 7.633682434674402e-06,
+        ('Commission', '2019-06-25', '16:02:01'): 4.4701827942046415e-06,
+        ('CommissionAmount', '2019-06-24', '09:30:00'): 88.4739,
+        ('CommissionAmount', '2019-06-24', '09:30:01'): 5.0581,
+        ('CommissionAmount', '2019-06-24', '09:30:02'): 6.0986,
+        ('CommissionAmount', '2019-06-24', '09:30:57'): 0.9308,
+        ('CommissionAmount', '2019-06-24', '16:02:02'): 1.4215,
+        ('CommissionAmount', '2019-06-24', '16:02:32'): 10.4016,
+        ('CommissionAmount', '2019-06-24', '16:02:57'): 53.2949,
+        ('CommissionAmount', '2019-06-24', '16:07:54'): 0.5315,
+        ('CommissionAmount', '2019-06-25', '09:30:00'): 10.748,
+        ('CommissionAmount', '2019-06-25', '16:00:01'): 1.4314,
+        ('CommissionAmount', '2019-06-25', '16:00:02'): 4.9149,
+        ('CommissionAmount', '2019-06-25', '16:02:01'): 2.8781,
+        ('NetExposure', '2019-06-24', '09:30:00'): -0.04696045,
+        ('NetExposure', '2019-06-24', '09:30:01'): -0.0582176,
+        ('NetExposure', '2019-06-24', '09:30:02'): -0.07179037,
+        ('NetExposure', '2019-06-24', '09:30:57'): -0.09748141,
+        ('NetExposure', '2019-06-24', '16:02:02'): -0.07268263,
+        ('NetExposure', '2019-06-24', '16:02:32'): -0.04785271,
+        ('NetExposure', '2019-06-24', '16:02:57'): -0.02569104,
+        ('NetExposure', '2019-06-24', '16:07:54'): 0.0,
+        ('NetExposure', '2019-06-25', '09:30:00'): 0.07527931,
+        ('NetExposure', '2019-06-25', '16:00:01'): -0.05038042,
+        ('NetExposure', '2019-06-25', '16:00:02'): -0.02493937,
+        ('NetExposure', '2019-06-25', '16:02:01'): 0.0,
+        ('NetLiquidation', '2019-06-24', '09:30:00'): 142588.3734333328,
+        ('NetLiquidation', '2019-06-24', '09:30:01'): 142835.7848504977,
+        ('NetLiquidation', '2019-06-24', '09:30:02'): 142835.7848504977,
+        ('NetLiquidation', '2019-06-24', '09:30:57'): 143081.5577814563,
+        ('NetLiquidation', '2019-06-24', '16:02:02'): 143081.5577814563,
+        ('NetLiquidation', '2019-06-24', '16:02:32'): 143081.5577814563,
+        ('NetLiquidation', '2019-06-24', '16:02:57'): 143081.5577814563,
+        ('NetLiquidation', '2019-06-24', '16:07:54'): 143081.5577814563,
+        ('NetLiquidation', '2019-06-25', '09:30:00'): 143843.9170163928,
+        ('NetLiquidation', '2019-06-25', '16:00:01'): 143843.9170163928,
+        ('NetLiquidation', '2019-06-25', '16:00:02'): 143843.9170163928,
+        ('NetLiquidation', '2019-06-25', '16:02:01'): 143843.9170163928,
+        ('OrderRef', '2019-06-24', '09:30:00'): 'my-strategy',
+        ('OrderRef', '2019-06-24', '09:30:01'): 'my-strategy',
+        ('OrderRef', '2019-06-24', '09:30:02'): 'my-strategy',
+        ('OrderRef', '2019-06-24', '09:30:57'): 'my-strategy',
+        ('OrderRef', '2019-06-24', '16:02:02'): 'my-strategy',
+        ('OrderRef', '2019-06-24', '16:02:32'): 'my-strategy',
+        ('OrderRef', '2019-06-24', '16:02:57'): 'my-strategy',
+        ('OrderRef', '2019-06-24', '16:07:54'): 'my-strategy',
+        ('OrderRef', '2019-06-25', '09:30:00'): 'my-strategy',
+        ('OrderRef', '2019-06-25', '16:00:01'): 'my-strategy',
+        ('OrderRef', '2019-06-25', '16:00:02'): 'my-strategy',
+        ('OrderRef', '2019-06-25', '16:02:01'): 'my-strategy',
+        ('Pnl', '2019-06-24', '09:30:00'): -88.4739,
+        ('Pnl', '2019-06-24', '09:30:01'): -5.0581,
+        ('Pnl', '2019-06-24', '09:30:02'): -6.0986,
+        ('Pnl', '2019-06-24', '09:30:57'): -0.9308,
+        ('Pnl', '2019-06-24', '16:02:02'): 340.4585,
+        ('Pnl', '2019-06-24', '16:02:32'): 1029.2784,
+        ('Pnl', '2019-06-24', '16:02:57'): -809.0687,
+        ('Pnl', '2019-06-24', '16:07:54'): -361.4215,
+        ('Pnl', '2019-06-25', '09:30:00'): -10.748,
+        ('Pnl', '2019-06-25', '16:00:01'): 766.8886,
+        ('Pnl', '2019-06-25', '16:00:02'): 264.2851,
+        ('Pnl', '2019-06-25', '16:02:01'): 1579.3619,
+        ('Return', '2019-06-24', '09:30:00'): -0.00012338,
+        ('Return', '2019-06-24', '09:30:01'): -7.05e-06,
+        ('Return', '2019-06-24', '09:30:02'): -8.51e-06,
+        ('Return', '2019-06-24', '09:30:57'): -1.3e-06,
+        ('Return', '2019-06-24', '16:02:02'): 0.0004748,
+        ('Return', '2019-06-24', '16:02:32'): 0.00143542,
+        ('Return', '2019-06-24', '16:02:57'): -0.00112832,
+        ('Return', '2019-06-24', '16:07:54'): -0.00050403,
+        ('Return', '2019-06-25', '09:30:00'): -1.492e-05,
+        ('Return', '2019-06-25', '16:00:01'): 0.00106425,
+        ('Return', '2019-06-25', '16:00:02'): 0.00036676,
+        ('Return', '2019-06-25', '16:02:01'): 0.00219177,
+        ('TotalHoldings', '2019-06-24', '09:30:00'): 2.0,
+        ('TotalHoldings', '2019-06-24', '09:30:01'): 3.0,
+        ('TotalHoldings', '2019-06-24', '09:30:02'): 3.0,
+        ('TotalHoldings', '2019-06-24', '09:30:57'): 4.0,
+        ('TotalHoldings', '2019-06-24', '16:02:02'): 3.0,
+        ('TotalHoldings', '2019-06-24', '16:02:32'): 2.0,
+        ('TotalHoldings', '2019-06-24', '16:02:57'): 1.0,
+        ('TotalHoldings', '2019-06-24', '16:07:54'): 0.0,
+        ('TotalHoldings', '2019-06-25', '09:30:00'): 3.0,
+        ('TotalHoldings', '2019-06-25', '16:00:01'): 2.0,
+        ('TotalHoldings', '2019-06-25', '16:00:02'): 1.0,
+        ('TotalHoldings', '2019-06-25', '16:02:01'): 0.0,
+        ('Turnover', '2019-06-24', '09:30:00'): 0.0469604542140948,
+        ('Turnover', '2019-06-24', '09:30:01'): 0.011257145696517867,
+        ('Turnover', '2019-06-24', '09:30:02'): 0.013572770371361662,
+        ('Turnover', '2019-06-24', '09:30:57'): 0.02569104439785384,
+        ('Turnover', '2019-06-24', '16:02:02'): 0.024798788931251575,
+        ('Turnover', '2019-06-24', '16:02:32'): 0.02482991606787953,
+        ('Turnover', '2019-06-24', '16:02:57'): 0.02216166528284323,
+        ('Turnover', '2019-06-24', '16:07:54'): 0.02569104439785384,
+        ('Turnover', '2019-06-25', '09:30:00'): 0.07527930520305026,
+        ('Turnover', '2019-06-25', '16:00:01'): 0.02489888536596387,
+        ('Turnover', '2019-06-25', '16:00:02'): 0.025441053646071972,
+        ('Turnover', '2019-06-25', '16:02:01'): 0.024939366191014428}
+}
+
+PNL_INTRADAY_DETAILED_RESULTS = {
+    'CBL(5474)': {
+        ('AbsExposure', '2019-06-24', '09:30:00'): 0.02216167,
+        ('AbsExposure', '2019-06-24', '09:30:01'): 0.02216167,
+        ('AbsExposure', '2019-06-24', '09:30:02'): 0.02216167,
+        ('AbsExposure', '2019-06-24', '09:30:57'): 0.02216167,
+        ('AbsExposure', '2019-06-24', '16:02:02'): 0.02216167,
+        ('AbsExposure', '2019-06-24', '16:02:32'): 0.02216167,
+        ('AbsExposure', '2019-06-24', '16:02:57'): 0.0,
+        ('AbsExposure', '2019-06-24', '16:07:54'): 0.0,
+        ('AbsExposure', '2019-06-25', '09:30:00'): 0.0,
+        ('AbsExposure', '2019-06-25', '16:00:01'): 0.0,
+        ('AbsExposure', '2019-06-25', '16:00:02'): 0.0,
+        ('AbsExposure', '2019-06-25', '16:02:01'): 0.0,
+        ('Commission', '2019-06-24', '09:30:00'): 0.00012081498820718027,
+        ('Commission', '2019-06-24', '09:30:01'): 0.0,
+        ('Commission', '2019-06-24', '09:30:02'): 0.0,
+        ('Commission', '2019-06-24', '09:30:57'): 0.0,
+        ('Commission', '2019-06-24', '16:02:02'): 0.0,
+        ('Commission', '2019-06-24', '16:02:32'): 0.0,
+        ('Commission', '2019-06-24', '16:02:57'): 7.432426675057977e-05,
+        ('Commission', '2019-06-24', '16:07:54'): 0.0,
+        ('Commission', '2019-06-25', '09:30:00'): 0.0,
+        ('Commission', '2019-06-25', '16:00:01'): 0.0,
+        ('Commission', '2019-06-25', '16:00:02'): 0.0,
+        ('Commission', '2019-06-25', '16:02:01'): 0.0,
+        ('CommissionAmount', '2019-06-24', '09:30:00'): 86.6315,
+        ('CommissionAmount', '2019-06-24', '09:30:01'): 0.0,
+        ('CommissionAmount', '2019-06-24', '09:30:02'): 0.0,
+        ('CommissionAmount', '2019-06-24', '09:30:57'): 0.0,
+        ('CommissionAmount', '2019-06-24', '16:02:02'): 0.0,
+        ('CommissionAmount', '2019-06-24', '16:02:32'): 0.0,
+        ('CommissionAmount', '2019-06-24', '16:02:57'): 53.2949,
+        ('CommissionAmount', '2019-06-24', '16:07:54'): 0.0,
+        ('CommissionAmount', '2019-06-25', '09:30:00'): 0.0,
+        ('CommissionAmount', '2019-06-25', '16:00:01'): 0.0,
+        ('CommissionAmount', '2019-06-25', '16:00:02'): 0.0,
+        ('CommissionAmount', '2019-06-25', '16:02:01'): 0.0,
+        ('NetExposure', '2019-06-24', '09:30:00'): -0.02216167,
+        ('NetExposure', '2019-06-24', '09:30:01'): -0.02216167,
+        ('NetExposure', '2019-06-24', '09:30:02'): -0.02216167,
+        ('NetExposure', '2019-06-24', '09:30:57'): -0.02216167,
+        ('NetExposure', '2019-06-24', '16:02:02'): -0.02216167,
+        ('NetExposure', '2019-06-24', '16:02:32'): -0.02216167,
+        ('NetExposure', '2019-06-24', '16:02:57'): 0.0,
+        ('NetExposure', '2019-06-24', '16:07:54'): 0.0,
+        ('NetExposure', '2019-06-25', '09:30:00'): 0.0,
+        ('NetExposure', '2019-06-25', '16:00:01'): 0.0,
+        ('NetExposure', '2019-06-25', '16:00:02'): 0.0,
+        ('NetExposure', '2019-06-25', '16:02:01'): 0.0,
+        ('NetLiquidation', '2019-06-24', '09:30:00'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '09:30:01'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '09:30:02'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '09:30:57'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '16:02:02'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '16:02:32'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '16:02:57'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '16:07:54'): 717059.21,
+        ('NetLiquidation', '2019-06-25', '09:30:00'): 720588.08,
+        ('NetLiquidation', '2019-06-25', '16:00:01'): 720588.08,
+        ('NetLiquidation', '2019-06-25', '16:00:02'): 720588.08,
+        ('NetLiquidation', '2019-06-25', '16:02:01'): 720588.08,
+        ('Pnl', '2019-06-24', '09:30:00'): -86.6315,
+        ('Pnl', '2019-06-24', '09:30:01'): 0.0,
+        ('Pnl', '2019-06-24', '09:30:02'): 0.0,
+        ('Pnl', '2019-06-24', '09:30:57'): 0.0,
+        ('Pnl', '2019-06-24', '16:02:02'): 0.0,
+        ('Pnl', '2019-06-24', '16:02:32'): 0.0,
+        ('Pnl', '2019-06-24', '16:02:57'): -809.0687,
+        ('Pnl', '2019-06-24', '16:07:54'): 0.0,
+        ('Pnl', '2019-06-25', '09:30:00'): 0.0,
+        ('Pnl', '2019-06-25', '16:00:01'): 0.0,
+        ('Pnl', '2019-06-25', '16:00:02'): 0.0,
+        ('Pnl', '2019-06-25', '16:02:01'): 0.0,
+        ('PositionQuantity', '2019-06-24', '09:30:00'): 166.0,
+        ('PositionQuantity', '2019-06-24', '09:30:01'): -16647.0,
+        ('PositionQuantity', '2019-06-24', '09:30:02'): -16647.0,
+        ('PositionQuantity', '2019-06-24', '09:30:57'): -16647.0,
+        ('PositionQuantity', '2019-06-24', '16:02:02'): -16647.0,
+        ('PositionQuantity', '2019-06-24', '16:02:32'): -16647.0,
+        ('PositionQuantity', '2019-06-24', '16:02:57'): 0.0,
+        ('PositionQuantity', '2019-06-24', '16:07:54'): 0.0,
+        ('PositionQuantity', '2019-06-25', '09:30:00'): 0.0,
+        ('PositionQuantity', '2019-06-25', '16:00:01'): 0.0,
+        ('PositionQuantity', '2019-06-25', '16:00:02'): 0.0,
+        ('PositionQuantity', '2019-06-25', '16:02:01'): 0.0,
+        ('PositionValue', '2019-06-24', '09:30:00'): -15891.2262,
+        ('PositionValue', '2019-06-24', '09:30:01'): -15891.2262,
+        ('PositionValue', '2019-06-24', '09:30:02'): -15891.2262,
+        ('PositionValue', '2019-06-24', '09:30:57'): -15891.2262,
+        ('PositionValue', '2019-06-24', '16:02:02'): -15891.2262,
+        ('PositionValue', '2019-06-24', '16:02:32'): 15892.2262,
+        ('PositionValue', '2019-06-24', '16:02:57'): 0.0,
+        ('PositionValue', '2019-06-24', '16:07:54'): 0.0,
+        ('PositionValue', '2019-06-25', '09:30:00'): 0.0,
+        ('PositionValue', '2019-06-25', '16:00:01'): 0.0,
+        ('PositionValue', '2019-06-25', '16:00:02'): 0.0,
+        ('PositionValue', '2019-06-25', '16:02:01'): 0.0,
+        ('Price', '2019-06-24', '09:30:00'): 0.95,
+        ('Price', '2019-06-24', '09:30:01'): 0.95,
+        ('Price', '2019-06-24', '09:30:02'): 0.95,
+        ('Price', '2019-06-24', '09:30:57'): 0.95,
+        ('Price', '2019-06-24', '16:02:02'): 0.95,
+        ('Price', '2019-06-24', '16:02:32'): 0.95,
+        ('Price', '2019-06-24', '16:02:57'): 1.0,
+        ('Price', '2019-06-24', '16:07:54'): 1.0,
+        ('Price', '2019-06-25', '09:30:00'): 1.0,
+        ('Price', '2019-06-25', '16:00:01'): 1.0,
+        ('Price', '2019-06-25', '16:00:02'): 1.0,
+        ('Price', '2019-06-25', '16:02:01'): 1.0,
+        ('Return', '2019-06-24', '09:30:00'): -0.001,
+        ('Return', '2019-06-24', '09:30:01'): 0.0,
+        ('Return', '2019-06-24', '09:30:02'): 0.0,
+        ('Return', '2019-06-24', '09:30:57'): 0.0,
+        ('Return', '2019-06-24', '16:02:02'): 0.01,
+        ('Return', '2019-06-24', '16:02:32'): 0.01,
+        ('Return', '2019-06-24', '16:02:57'): -0.0011,
+        ('Return', '2019-06-24', '16:07:54'): 0.0,
+        ('Return', '2019-06-25', '09:30:00'): 0.0,
+        ('Return', '2019-06-25', '16:00:01'): 0.0,
+        ('Return', '2019-06-25', '16:00:02'): 0.0,
+        ('Return', '2019-06-25', '16:02:01'): 0.0,
+        ('TotalHoldings', '2019-06-24', '09:30:00'): 1.0,
+        ('TotalHoldings', '2019-06-24', '09:30:01'): 1.0,
+        ('TotalHoldings', '2019-06-24', '09:30:02'): 1.0,
+        ('TotalHoldings', '2019-06-24', '09:30:57'): 1.0,
+        ('TotalHoldings', '2019-06-24', '16:02:02'): 1.0,
+        ('TotalHoldings', '2019-06-24', '16:02:32'): 1.0,
+        ('TotalHoldings', '2019-06-24', '16:02:57'): 0.0,
+        ('TotalHoldings', '2019-06-24', '16:07:54'): 0.0,
+        ('TotalHoldings', '2019-06-25', '09:30:00'): 0.0,
+        ('TotalHoldings', '2019-06-25', '16:00:01'): 0.0,
+        ('TotalHoldings', '2019-06-25', '16:00:02'): 0.0,
+        ('TotalHoldings', '2019-06-25', '16:02:01'): 0.0,
+        ('Turnover', '2019-06-24', '09:30:00'): 0.02216167,
+        ('Turnover', '2019-06-24', '09:30:01'): 0.0,
+        ('Turnover', '2019-06-24', '09:30:02'): 0.0,
+        ('Turnover', '2019-06-24', '09:30:57'): 0.0,
+        ('Turnover', '2019-06-24', '16:02:02'): 0.0,
+        ('Turnover', '2019-06-24', '16:02:32'): 0.0,
+        ('Turnover', '2019-06-24', '16:02:57'): 0.02216167,
+        ('Turnover', '2019-06-24', '16:07:54'): 0.0,
+        ('Turnover', '2019-06-25', '09:30:00'): 0.0,
+        ('Turnover', '2019-06-25', '16:00:01'): 0.0,
+        ('Turnover', '2019-06-25', '16:00:02'): 0.0,
+        ('Turnover', '2019-06-25', '16:02:01'): 0.0},
+    'KFY(6477845)': {
+        ('AbsExposure', '2019-06-24', '09:30:00'): 0.02479879,
+        ('AbsExposure', '2019-06-24', '09:30:01'): 0.02479879,
+        ('AbsExposure', '2019-06-24', '09:30:02'): 0.02479879,
+        ('AbsExposure', '2019-06-24', '09:30:57'): 0.02479879,
+        ('AbsExposure', '2019-06-24', '16:02:02'): 0.0,
+        ('AbsExposure', '2019-06-24', '16:02:32'): 0.0,
+        ('AbsExposure', '2019-06-24', '16:02:57'): 0.0,
+        ('AbsExposure', '2019-06-24', '16:07:54'): 0.0,
+        ('AbsExposure', '2019-06-25', '09:30:00'): 0.0,
+        ('AbsExposure', '2019-06-25', '16:00:01'): 0.0,
+        ('AbsExposure', '2019-06-25', '16:00:02'): 0.0,
+        ('AbsExposure', '2019-06-25', '16:02:01'): 0.0,
+        ('Commission', '2019-06-24', '09:30:00'): 2.569383356780258e-06,
+        ('Commission', '2019-06-24', '09:30:01'): 0.0,
+        ('Commission', '2019-06-24', '09:30:02'): 0.0,
+        ('Commission', '2019-06-24', '09:30:57'): 0.0,
+        ('Commission', '2019-06-24', '16:02:02'): 1.9824025410677034e-06,
+        ('Commission', '2019-06-24', '16:02:32'): 0.0,
+        ('Commission', '2019-06-24', '16:02:57'): 0.0,
+        ('Commission', '2019-06-24', '16:07:54'): 0.0,
+        ('Commission', '2019-06-25', '09:30:00'): 0.0,
+        ('Commission', '2019-06-25', '16:00:01'): 0.0,
+        ('Commission', '2019-06-25', '16:00:02'): 0.0,
+        ('Commission', '2019-06-25', '16:02:01'): 0.0,
+        ('CommissionAmount', '2019-06-24', '09:30:00'): 1.8424,
+        ('CommissionAmount', '2019-06-24', '09:30:01'): 0.0,
+        ('CommissionAmount', '2019-06-24', '09:30:02'): 0.0,
+        ('CommissionAmount', '2019-06-24', '09:30:57'): 0.0,
+        ('CommissionAmount', '2019-06-24', '16:02:02'): 1.4215,
+        ('CommissionAmount', '2019-06-24', '16:02:32'): 0.0,
+        ('CommissionAmount', '2019-06-24', '16:02:57'): 0.0,
+        ('CommissionAmount', '2019-06-24', '16:07:54'): 0.0,
+        ('CommissionAmount', '2019-06-25', '09:30:00'): 0.0,
+        ('CommissionAmount', '2019-06-25', '16:00:01'): 0.0,
+        ('CommissionAmount', '2019-06-25', '16:00:02'): 0.0,
+        ('CommissionAmount', '2019-06-25', '16:02:01'): 0.0,
+        ('NetExposure', '2019-06-24', '09:30:00'): -0.02479879,
+        ('NetExposure', '2019-06-24', '09:30:01'): -0.02479879,
+        ('NetExposure', '2019-06-24', '09:30:02'): -0.02479879,
+        ('NetExposure', '2019-06-24', '09:30:57'): -0.02479879,
+        ('NetExposure', '2019-06-24', '16:02:02'): 0.0,
+        ('NetExposure', '2019-06-24', '16:02:32'): 0.0,
+        ('NetExposure', '2019-06-24', '16:02:57'): 0.0,
+        ('NetExposure', '2019-06-24', '16:07:54'): 0.0,
+        ('NetExposure', '2019-06-25', '09:30:00'): 0.0,
+        ('NetExposure', '2019-06-25', '16:00:01'): 0.0,
+        ('NetExposure', '2019-06-25', '16:00:02'): 0.0,
+        ('NetExposure', '2019-06-25', '16:02:01'): 0.0,
+        ('NetLiquidation', '2019-06-24', '09:30:00'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '09:30:01'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '09:30:02'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '09:30:57'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '16:02:02'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '16:02:32'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '16:02:57'): 717059.21,
+        ('NetLiquidation', '2019-06-24', '16:07:54'): 717059.21,
+        ('NetLiquidation', '2019-06-25', '09:30:00'): 720588.08,
+        ('NetLiquidation', '2019-06-25', '16:00:01'): 720588.08,
+        ('NetLiquidation', '2019-06-25', '16:00:02'): 720588.08,
+        ('NetLiquidation', '2019-06-25', '16:02:01'): 720588.08,
+        ('Pnl', '2019-06-24', '09:30:00'): -1.8424,
+        ('Pnl', '2019-06-24', '09:30:01'): 0.0,
+        ('Pnl', '2019-06-24', '09:30:02'): 0.0,
+        ('Pnl', '2019-06-24', '09:30:57'): 0.0,
+        ('Pnl', '2019-06-24', '16:02:02'): 340.4585,
+        ('Pnl', '2019-06-24', '16:02:32'): 0.0,
+        ('Pnl', '2019-06-24', '16:02:57'): 0.0,
+        ('Pnl', '2019-06-24', '16:07:54'): 0.0,
+        ('Pnl', '2019-06-25', '09:30:00'): 0.0,
+        ('Pnl', '2019-06-25', '16:00:01'): 0.0,
+        ('Pnl', '2019-06-25', '16:00:02'): 0.0,
+        ('Pnl', '2019-06-25', '16:02:01'): 0.0,
+        ('PositionQuantity', '2019-06-24', '09:30:00'): -444.0,
+        ('PositionQuantity', '2019-06-24', '09:30:01'): -444.0,
+        ('PositionQuantity', '2019-06-24', '09:30:02'): -444.0,
+        ('PositionQuantity', '2019-06-24', '09:30:57'): -444.0,
+        ('PositionQuantity', '2019-06-24', '16:02:02'): 0.0,
+        ('PositionQuantity', '2019-06-24', '16:02:32'): 0.0,
+        ('PositionQuantity', '2019-06-24', '16:02:57'): 0.0,
+        ('PositionQuantity', '2019-06-24', '16:07:54'): 0.0,
+        ('PositionQuantity', '2019-06-25', '09:30:00'): 0.0,
+        ('PositionQuantity', '2019-06-25', '16:00:01'): 0.0,
+        ('PositionQuantity', '2019-06-25', '16:00:02'): 0.0,
+        ('PositionQuantity', '2019-06-25', '16:02:01'): 0.0,
+        ('PositionValue', '2019-06-24', '09:30:00'): -17782.2,
+        ('PositionValue', '2019-06-24', '09:30:01'): -17782.2,
+        ('PositionValue', '2019-06-24', '09:30:02'): -17782.2,
+        ('PositionValue', '2019-06-24', '09:30:57'): -17782.2,
+        ('PositionValue', '2019-06-24', '16:02:02'): 0.0,
+        ('PositionValue', '2019-06-24', '16:02:32'): 0.0,
+        ('PositionValue', '2019-06-24', '16:02:57'): 0.0,
+        ('PositionValue', '2019-06-24', '16:07:54'): 0.0,
+        ('PositionValue', '2019-06-25', '09:30:00'): 0.0,
+        ('PositionValue', '2019-06-25', '16:00:01'): 0.0,
+        ('PositionValue', '2019-06-25', '16:00:02'): 0.0,
+        ('PositionValue', '2019-06-25', '16:02:01'): 0.0,
+        ('Price', '2019-06-24', '09:30:00'): 40.05,
+        ('Price', '2019-06-24', '09:30:01'): 40.05,
+        ('Price', '2019-06-24', '09:30:02'): 40.05,
+        ('Price', '2019-06-24', '09:30:57'): 40.05,
+        ('Price', '2019-06-24', '16:02:02'): 39.28,
+        ('Price', '2019-06-24', '16:02:32'): 39.28,
+        ('Price', '2019-06-24', '16:02:57'): 39.28,
+        ('Price', '2019-06-24', '16:07:54'): 39.28,
+        ('Price', '2019-06-25', '09:30:00'): 39.28,
+        ('Price', '2019-06-25', '16:00:01'): 39.28,
+        ('Price', '2019-06-25', '16:00:02'): 39.28,
+        ('Price', '2019-06-25', '16:02:01'): 39.28,
+        ('Return', '2019-06-24', '09:30:00'): -2.57e-06,
+        ('Return', '2019-06-24', '09:30:01'): 0.0,
+        ('Return', '2019-06-24', '09:30:02'): 0.0,
+        ('Return', '2019-06-24', '09:30:57'): 0.0,
+        ('Return', '2019-06-24', '16:02:02'): 0.0047,
+        ('Return', '2019-06-24', '16:02:32'): 0.0,
+        ('Return', '2019-06-24', '16:02:57'): 0.0,
+        ('Return', '2019-06-24', '16:07:54'): 0.0,
+        ('Return', '2019-06-25', '09:30:00'): 0.0,
+        ('Return', '2019-06-25', '16:00:01'): 0.0,
+        ('Return', '2019-06-25', '16:00:02'): 0.0,
+        ('Return', '2019-06-25', '16:02:01'): 0.0,
+        ('TotalHoldings', '2019-06-24', '09:30:00'): 1.0,
+        ('TotalHoldings', '2019-06-24', '09:30:01'): 1.0,
+        ('TotalHoldings', '2019-06-24', '09:30:02'): 1.0,
+        ('TotalHoldings', '2019-06-24', '09:30:57'): 1.0,
+        ('TotalHoldings', '2019-06-24', '16:02:02'): 0.0,
+        ('TotalHoldings', '2019-06-24', '16:02:32'): 0.0,
+        ('TotalHoldings', '2019-06-24', '16:02:57'): 0.0,
+        ('TotalHoldings', '2019-06-24', '16:07:54'): 0.0,
+        ('TotalHoldings', '2019-06-25', '09:30:00'): 0.0,
+        ('TotalHoldings', '2019-06-25', '16:00:01'): 0.0,
+        ('TotalHoldings', '2019-06-25', '16:00:02'): 0.0,
+        ('TotalHoldings', '2019-06-25', '16:02:01'): 0.0,
+        ('Turnover', '2019-06-24', '09:30:00'): 0.02479879,
+        ('Turnover', '2019-06-24', '09:30:01'): 0.0,
+        ('Turnover', '2019-06-24', '09:30:02'): 0.0,
+        ('Turnover', '2019-06-24', '09:30:57'): 0.0,
+        ('Turnover', '2019-06-24', '16:02:02'): 0.02479879,
+        ('Turnover', '2019-06-24', '16:02:32'): 0.0,
+        ('Turnover', '2019-06-24', '16:02:57'): 0.0,
+        ('Turnover', '2019-06-24', '16:07:54'): 0.0,
+        ('Turnover', '2019-06-25', '09:30:00'): 0.0,
+        ('Turnover', '2019-06-25', '16:00:01'): 0.0,
+        ('Turnover', '2019-06-25', '16:00:02'): 0.0,
+        ('Turnover', '2019-06-25', '16:02:01'): 0.0}}
+
 class IntradayToDailyTestCase(unittest.TestCase):
     """
     Test cases for `moonchart.utils.intraday_to_daily`.
@@ -237,9 +667,9 @@ class IntradayToDailyTestCase(unittest.TestCase):
             os.remove("results.csv")
 
 
-    def test_aggregate_intraday_to_daily(self):
+    def test_moonshot_aggregate_intraday_to_daily(self):
 
-        results = pd.DataFrame.from_dict(INTRADAY_AGGREGATE_RESULTS)
+        results = pd.DataFrame.from_dict(MOONSHOT_INTRADAY_AGGREGATE_RESULTS)
         results.index.set_names(["Field","Date", "Time"], inplace=True)
         results.to_csv("results.csv")
 
@@ -266,9 +696,9 @@ class IntradayToDailyTestCase(unittest.TestCase):
                 # sum
                 ('Commission', '2018-12-18'): 0.00022,
                 ('Commission', '2018-12-19'): 0.0001,
-                # mean
+                # extreme
                 ('NetExposure', '2018-12-18'): 0.0,
-                ('NetExposure', '2018-12-19'): 1.5,
+                ('NetExposure', '2018-12-19'): 2.0,
                 # sum
                 ('Return', '2018-12-18'): 0.0,
                 ('Return', '2018-12-19'): 0.0005820400950750315,
@@ -283,9 +713,9 @@ class IntradayToDailyTestCase(unittest.TestCase):
                 ('Turnover', '2018-12-19'): 0.30000000000000004}}
         )
 
-    def test_detailed_intraday_to_daily(self):
+    def test_moonshot_detailed_intraday_to_daily(self):
 
-        results = pd.DataFrame.from_dict(INTRADAY_DETAILED_RESULTS)
+        results = pd.DataFrame.from_dict(MOONSHOT_INTRADAY_DETAILED_RESULTS)
         results.index.set_names(["Field","Date", "Time"], inplace=True)
         results.to_csv("results.csv")
 
@@ -298,6 +728,8 @@ class IntradayToDailyTestCase(unittest.TestCase):
         daily_results = daily_results.set_index(["Field", "Date"])
 
         daily_results = daily_results.where(daily_results.notnull(), None)
+
+        self.maxDiff = None
 
         self.assertDictEqual(
             daily_results.to_dict(),
@@ -313,9 +745,9 @@ class IntradayToDailyTestCase(unittest.TestCase):
                                    # sum
                                    ('Commission', '2018-12-18'): 1e-05,
                                    ('Commission', '2018-12-19'): 2e-05,
-                                   # mean
+                                   # extreme
                                    ('NetExposure', '2018-12-18'): 0.0,
-                                   ('NetExposure', '2018-12-19'): 0.20000000000000004,
+                                   ('NetExposure', '2018-12-19'): 0.2,
                                    # sum
                                    ('Return', '2018-12-18'): 0.0,
                                    ('Return', '2018-12-19'): 0.00035730412741801225,
@@ -328,9 +760,9 @@ class IntradayToDailyTestCase(unittest.TestCase):
                                    # sum
                                    ('Turnover', '2018-12-18'): 0.0,
                                    ('Turnover', '2018-12-19'): 0.30000000000000004,
-                                   # mean
+                                   # extreme
                                    ('Weight', '2018-12-18'): 0.0,
-                                   ('Weight', '2018-12-19'): 0.15},
+                                   ('Weight', '2018-12-19'): 0.2},
              'GBP.USD(12087797)': {# max
                                    ('AbsExposure', '2018-12-18'): 0.0,
                                    ('AbsExposure', '2018-12-19'): 0.2,
@@ -343,9 +775,9 @@ class IntradayToDailyTestCase(unittest.TestCase):
                                    # sum
                                    ('Commission', '2018-12-18'): 0.0,
                                    ('Commission', '2018-12-19'): 3.0000000000000004e-05,
-                                   # mean
+                                   # extreme
                                    ('NetExposure', '2018-12-18'): 0.0,
-                                   ('NetExposure', '2018-12-19'): 0.20000000000000004,
+                                   ('NetExposure', '2018-12-19'): 0.3,
                                    # sum
                                    ('Return', '2018-12-18'): 0.0,
                                    ('Return', '2018-12-19'): 0.0007114899464124138,
@@ -358,7 +790,248 @@ class IntradayToDailyTestCase(unittest.TestCase):
                                    # sum
                                    ('Turnover', '2018-12-18'): 0.0,
                                    ('Turnover', '2018-12-19'): 0.0,
-                                   # mean
+                                   # extreme
                                    ('Weight', '2018-12-18'): 0.0,
-                                   ('Weight', '2018-12-19'): 0.20000000000000004}}
+                                   ('Weight', '2018-12-19'): 0.2}}
+        )
+
+    def test_pnl_aggregate_intraday_to_daily(self):
+
+        results = pd.DataFrame.from_dict(PNL_INTRADAY_AGGREGATE_RESULTS)
+        results.index.set_names(["Field","Date", "Time"], inplace=True)
+        results.to_csv("results.csv")
+
+        intraday_results = read_pnl_csv("results.csv")
+
+        daily_results = intraday_to_daily(intraday_results)
+
+        daily_results = daily_results.reset_index()
+        daily_results.loc[:, "Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
+        daily_results = daily_results.set_index(["Field", "Date"])
+
+        self.assertDictEqual(
+            daily_results.to_dict(),
+            {'my-strategy': {
+                # max
+                ('AbsExposure', '2019-06-24'): 0.09748141,
+                ('AbsExposure', '2019-06-25'): 0.07527931,
+                # sum
+                ('Commission', '2019-06-24'): 0.0002585722866680238,
+                ('Commission', '2019-06-25'): 3.102056177303526e-05,
+                # Sum
+                ('CommissionAmount', '2019-06-24'): 166.21089999999998,
+                ('CommissionAmount', '2019-06-25'): 19.9724,
+                # extreme
+                ('NetExposure', '2019-06-24'): -0.09748141,
+                ('NetExposure', '2019-06-25'): 0.07527931,
+                # mean
+                ('NetLiquidation', '2019-06-24'): 142958.4665052012,
+                ('NetLiquidation', '2019-06-25'): 143843.9170163928,
+                # sum
+                ('Pnl', '2019-06-24'): 98.68529999999981,
+                ('Pnl', '2019-06-25'): 2599.7876,
+                # sum
+                ('Return', '2019-06-24'): 0.00013763000000000002,
+                ('Return', '2019-06-25'): 0.00360786,
+                # max
+                ('TotalHoldings', '2019-06-24'): 4.0,
+                ('TotalHoldings', '2019-06-25'): 3.0,
+                # sum
+                ('Turnover', '2019-06-24'): 0.1949628293596563,
+                ('Turnover', '2019-06-25'): 0.15055861040610052}})
+
+    def test_pnl_detailed_intraday_to_daily(self):
+
+        results = pd.DataFrame.from_dict(PNL_INTRADAY_DETAILED_RESULTS)
+        results.index.set_names(["Field","Date", "Time"], inplace=True)
+        results.to_csv("results.csv")
+
+        intraday_results = read_pnl_csv("results.csv")
+
+        daily_results = intraday_to_daily(intraday_results)
+
+        daily_results = daily_results.reset_index()
+        daily_results.loc[:, "Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
+        daily_results = daily_results.set_index(["Field", "Date"])
+
+        daily_results = daily_results.where(daily_results.notnull(), None)
+
+        self.maxDiff = None
+
+        self.assertDictEqual(
+            daily_results.to_dict(),
+            {'CBL(5474)': {
+                # max
+                ('AbsExposure', '2019-06-24'): 0.02216167,
+                ('AbsExposure', '2019-06-25'): 0.0,
+                # sum
+                ('Commission', '2019-06-24'): 0.00019513925495776003,
+                ('Commission', '2019-06-25'): 0.0,
+                # sum
+                ('CommissionAmount', '2019-06-24'): 139.9264,
+                ('CommissionAmount', '2019-06-25'): 0.0,
+                # extreme
+                ('NetExposure', '2019-06-24'): -0.02216167,
+                ('NetExposure', '2019-06-25'): 0.0,
+                # mean
+                ('NetLiquidation', '2019-06-24'): 717059.21,
+                ('NetLiquidation', '2019-06-25'): 720588.08,
+                # sum
+                ('Pnl', '2019-06-24'): -895.7002,
+                ('Pnl', '2019-06-25'): 0.0,
+                # extreme
+                ('PositionQuantity', '2019-06-24'): -16647.0,
+                ('PositionQuantity', '2019-06-25'): 0.0,
+                # extreme
+                ('PositionValue', '2019-06-24'): 15892.2262,
+                ('PositionValue', '2019-06-25'): 0.0,
+                # last
+                ('Price', '2019-06-24'): 1.0,
+                ('Price', '2019-06-25'): 1.0,
+                # sum
+                ('Return', '2019-06-24'): 0.017900000000000003,
+                ('Return', '2019-06-25'): 0.0,
+                # max
+                ('TotalHoldings', '2019-06-24'): 1.0,
+                ('TotalHoldings', '2019-06-25'): 0.0,
+                # sum
+                ('Turnover', '2019-06-24'): 0.04432334,
+                ('Turnover', '2019-06-25'): 0.0},
+             'KFY(6477845)': {
+                 # max
+                 ('AbsExposure', '2019-06-24'): 0.02479879,
+                 ('AbsExposure', '2019-06-25'): 0.0,
+                 # sum
+                 ('Commission', '2019-06-24'): 4.5517858978479615e-06,
+                 ('Commission', '2019-06-25'): 0.0,
+                 # sum
+                 ('CommissionAmount', '2019-06-24'): 3.2639,
+                 ('CommissionAmount', '2019-06-25'): 0.0,
+                 # extreme
+                 ('NetExposure', '2019-06-24'): -0.02479879,
+                 ('NetExposure', '2019-06-25'): 0.0,
+                 # mean
+                 ('NetLiquidation', '2019-06-24'): 717059.21,
+                 ('NetLiquidation', '2019-06-25'): 720588.08,
+                 # sum
+                 ('Pnl', '2019-06-24'): 338.6161,
+                 ('Pnl', '2019-06-25'): 0.0,
+                 # extreme
+                 ('PositionQuantity', '2019-06-24'): -444.0,
+                 ('PositionQuantity', '2019-06-25'): 0.0,
+                 # extreme
+                 ('PositionValue', '2019-06-24'): -17782.2,
+                 ('PositionValue', '2019-06-25'): 0.0,
+                 # last
+                 ('Price', '2019-06-24'): 39.28,
+                 ('Price', '2019-06-25'): 39.28,
+                 # sum
+                 ('Return', '2019-06-24'): 0.00469743,
+                 ('Return', '2019-06-25'): 0.0,
+                 # max
+                 ('TotalHoldings', '2019-06-24'): 1.0,
+                 ('TotalHoldings', '2019-06-25'): 0.0,
+                 # sum
+                 ('Turnover', '2019-06-24'): 0.04959758,
+                 ('Turnover', '2019-06-25'): 0.0}}
+        )
+
+    def test_override_how(self):
+
+        results = pd.DataFrame.from_dict(PNL_INTRADAY_DETAILED_RESULTS)
+        results.index.set_names(["Field","Date", "Time"], inplace=True)
+        results.to_csv("results.csv")
+
+        intraday_results = read_pnl_csv("results.csv")
+
+        daily_results = intraday_to_daily(intraday_results,
+                                          how={
+                                              "NetExposure": "mean",
+                                              "Price": "max"
+                                          })
+
+        daily_results = daily_results.reset_index()
+        daily_results.loc[:, "Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
+        daily_results = daily_results.set_index(["Field", "Date"])
+
+        daily_results = daily_results.where(daily_results.notnull(), None)
+
+        self.maxDiff = None
+
+        self.assertDictEqual(
+            daily_results.to_dict(),
+            {'CBL(5474)': {
+                # max
+                ('AbsExposure', '2019-06-24'): 0.02216167,
+                ('AbsExposure', '2019-06-25'): 0.0,
+                # sum
+                ('Commission', '2019-06-24'): 0.00019513925495776003,
+                ('Commission', '2019-06-25'): 0.0,
+                # sum
+                ('CommissionAmount', '2019-06-24'): 139.9264,
+                ('CommissionAmount', '2019-06-25'): 0.0,
+                # mean
+                ('NetExposure', '2019-06-24'): -0.0166212525,
+                ('NetExposure', '2019-06-25'): 0.0,
+                # mean
+                ('NetLiquidation', '2019-06-24'): 717059.21,
+                ('NetLiquidation', '2019-06-25'): 720588.08,
+                # sum
+                ('Pnl', '2019-06-24'): -895.7002,
+                ('Pnl', '2019-06-25'): 0.0,
+                # extreme
+                ('PositionQuantity', '2019-06-24'): -16647.0,
+                ('PositionQuantity', '2019-06-25'): 0.0,
+                # extreme
+                ('PositionValue', '2019-06-24'): 15892.2262,
+                ('PositionValue', '2019-06-25'): 0.0,
+                # max
+                ('Price', '2019-06-24'): 1.0,
+                ('Price', '2019-06-25'): 1.0,
+                # sum
+                ('Return', '2019-06-24'): 0.017900000000000003,
+                ('Return', '2019-06-25'): 0.0,
+                # max
+                ('TotalHoldings', '2019-06-24'): 1.0,
+                ('TotalHoldings', '2019-06-25'): 0.0,
+                # sum
+                ('Turnover', '2019-06-24'): 0.04432334,
+                ('Turnover', '2019-06-25'): 0.0},
+             'KFY(6477845)': {
+                 # max
+                 ('AbsExposure', '2019-06-24'): 0.02479879,
+                 ('AbsExposure', '2019-06-25'): 0.0,
+                 # sum
+                 ('Commission', '2019-06-24'): 4.5517858978479615e-06,
+                 ('Commission', '2019-06-25'): 0.0,
+                 # sum
+                 ('CommissionAmount', '2019-06-24'): 3.2639,
+                 ('CommissionAmount', '2019-06-25'): 0.0,
+                 # mean
+                 ('NetExposure', '2019-06-24'): -0.012399395,
+                 ('NetExposure', '2019-06-25'): 0.0,
+                 # mean
+                 ('NetLiquidation', '2019-06-24'): 717059.21,
+                 ('NetLiquidation', '2019-06-25'): 720588.08,
+                 # sum
+                 ('Pnl', '2019-06-24'): 338.6161,
+                 ('Pnl', '2019-06-25'): 0.0,
+                 # extreme
+                 ('PositionQuantity', '2019-06-24'): -444.0,
+                 ('PositionQuantity', '2019-06-25'): 0.0,
+                 # extreme
+                 ('PositionValue', '2019-06-24'): -17782.2,
+                 ('PositionValue', '2019-06-25'): 0.0,
+                 # max
+                 ('Price', '2019-06-24'): 40.05,
+                 ('Price', '2019-06-25'): 39.28,
+                 # sum
+                 ('Return', '2019-06-24'): 0.00469743,
+                 ('Return', '2019-06-25'): 0.0,
+                 # max
+                 ('TotalHoldings', '2019-06-24'): 1.0,
+                 ('TotalHoldings', '2019-06-25'): 0.0,
+                 # sum
+                 ('Turnover', '2019-06-24'): 0.04959758,
+                 ('Turnover', '2019-06-25'): 0.0}}
         )
