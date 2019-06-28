@@ -685,7 +685,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
         perf = DailyPerformance.from_pnl_csv("pnl.csv", riskfree=0.02/252)
         self.assertDictEqual(
             perf.sharpe.to_dict(),
-            {'strategy-a': 12.826098362386784, 'strategy-b': 10.04273969611786}
+            {'strategy-a': 13.439089525191742, 'strategy-b': 10.255814111748151}
         )
 
     def test_compound(self):
