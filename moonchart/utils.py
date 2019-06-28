@@ -103,6 +103,29 @@ def with_baseline(data, value=1):
         data_with_baseline = pd.concat((baseline_row, data))
     return data_with_baseline
 
+def _pad_returns(returns):
+    """
+    Pads a returns Series or DataFrame with business days, in case the
+    existing Date index is sparse (as with PNL csvs). Sparse indexes if not
+    padded will affect the Sharpe ratio because the 0 return days will not be
+    included in the mean and std.
+    """
+    bdays = pd.date_range(start=returns.index.min(), end=returns.index.max(),freq="B")
+    idx = returns.index.union(bdays)
+    return returns.reindex(index=idx).fillna(0)
+
+def _get_sharpe(returns, riskfree=0):
+    """
+    Private function that returns the Sharpe ratio of the returns. Returns
+    should already be padded when calling this function.
+    """
+    mean = (returns - riskfree).mean()
+    if isinstance(mean, float) and mean == 0:
+        return 0
+    std = (returns - riskfree).std()
+    # Returns are assumed to represent daily returns, so annualize the Sharpe ratio
+    return mean/std * np.sqrt(252)
+
 def get_sharpe(returns, riskfree=0):
     """
     Returns the Sharpe ratio of the returns.
@@ -119,12 +142,8 @@ def get_sharpe(returns, riskfree=0):
     -------
     float or Series of floats
     """
-    mean = (returns - riskfree).mean()
-    if isinstance(mean, float) and mean == 0:
-        return 0
-    std = (returns - riskfree).std()
-    # Returns are assumed to represent daily returns, so annualize the Sharpe ratio
-    return mean/std * np.sqrt(252)
+    returns = _pad_returns(returns)
+    return _get_sharpe(returns)
 
 def get_rolling_sharpe(returns, window, riskfree=0):
     """
@@ -145,13 +164,14 @@ def get_rolling_sharpe(returns, window, riskfree=0):
     -------
     Series or DataFrame
     """
-    rolling_returns = returns.fillna(0).rolling(window, min_periods=window)
+    returns = _pad_returns(returns)
+    rolling_returns = returns.rolling(window, min_periods=window)
     try:
-        return rolling_returns.apply(get_sharpe, raw=True, kwargs=dict(riskfree=riskfree))
+        return rolling_returns.apply(_get_sharpe, raw=True, kwargs=dict(riskfree=riskfree))
     except TypeError as e:
         # handle pandas<0.23
         if "apply() got an unexpected keyword argument 'raw'" in repr(e):
-            return rolling_returns.apply(get_sharpe, kwargs=dict(riskfree=riskfree))
+            return rolling_returns.apply(_get_sharpe, kwargs=dict(riskfree=riskfree))
         else:
             raise
 
