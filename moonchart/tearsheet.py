@@ -97,21 +97,6 @@ class Tearsheet(BaseTearsheet):
 
         return t.create_full_tearsheet(perf)
 
-    def _from_pnl(self, results, trim_outliers=None,
-                  riskfree=0, compound=True,
-                  rolling_sharpe_window=200):
-        """
-        Creates a full tear sheet from a pnl DataFrame.
-        """
-        performance = DailyPerformance._from_pnl(
-            results,
-            trim_outliers=trim_outliers,
-            riskfree=riskfree,
-            compound=compound,
-            rolling_sharpe_window=rolling_sharpe_window)
-
-        return self.create_full_tearsheet(performance)
-
     @classmethod
     def from_pnl_csv(cls, filepath_or_buffer, figsize=None,
                      max_cols_for_details=25, trim_outliers=None,
@@ -154,16 +139,18 @@ class Tearsheet(BaseTearsheet):
         -------
         None
         """
-        results = pd.read_csv(filepath_or_buffer,
-                              parse_dates=["Date"],
-                              index_col=["Field","Date"])
+        perf = DailyPerformance.from_pnl_csv(
+            filepath_or_buffer,
+            trim_outliers=trim_outliers,
+            riskfree=riskfree,
+            compound=compound,
+            rolling_sharpe_window=rolling_sharpe_window)
 
         t = cls(figsize=figsize,
                 max_cols_for_details=max_cols_for_details,
                 pdf_filename=pdf_filename)
 
-        return t._from_pnl(results, trim_outliers=trim_outliers, riskfree=riskfree,
-            compound=compound, rolling_sharpe_window=rolling_sharpe_window)
+        return t.create_full_tearsheet(perf)
 
     def create_full_tearsheet(self, performance):
         """
