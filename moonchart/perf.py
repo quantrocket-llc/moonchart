@@ -198,6 +198,7 @@ class DailyPerformance(object):
                           start_date=None,
                           end_date=None,
                           trim_outliers=None,
+                          how_to_aggregate=None,
                           riskfree=0,
                           compound=True,
                           rolling_sharpe_window=200):
@@ -219,6 +220,11 @@ class DailyPerformance(object):
             discard returns that are more than this many standard deviations from
             the mean. Useful for dealing with data anomalies that cause large
             spikes in plots.
+
+        how_to_aggregate : dict, optional
+            a dict of {fieldname: aggregation method} specifying how to aggregate
+            fields from intraday to daily. See the docstring for
+            `moonchart.utils.intraday_to_daily` for more details.
 
         riskfree : float, optional
             the riskfree rate (default 0)
@@ -258,6 +264,7 @@ class DailyPerformance(object):
             start_date=start_date,
             end_date=end_date,
             trim_outliers=trim_outliers,
+            how_to_aggregate=how_to_aggregate,
             riskfree=riskfree,
             compound=compound,
             rolling_sharpe_window=rolling_sharpe_window)

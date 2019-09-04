@@ -39,6 +39,7 @@ class Tearsheet(BaseTearsheet):
     @classmethod
     def from_moonshot_csv(cls, filepath_or_buffer, figsize=None,
                           max_cols_for_details=25, trim_outliers=None,
+                          how_to_aggregate=None,
                           pdf_filename=None, riskfree=0,
                           compound=True, rolling_sharpe_window=200):
         """
@@ -61,6 +62,11 @@ class Tearsheet(BaseTearsheet):
             discard returns that are more than this many standard deviations
             from the mean. Useful for dealing with data anomalies that cause
             large spikes in plots.
+
+        how_to_aggregate : dict, optional
+            a dict of {fieldname: aggregation method} specifying how to aggregate
+            fields from intraday to daily. See the docstring for
+            `moonchart.utils.intraday_to_daily` for more details.
 
         pdf_filename : string, optional
             save tear sheet to this filepath as a PDF instead of displaying
@@ -87,6 +93,7 @@ class Tearsheet(BaseTearsheet):
         perf = DailyPerformance.from_moonshot_csv(
             filepath_or_buffer,
             trim_outliers=trim_outliers,
+            how_to_aggregate=how_to_aggregate,
             riskfree=riskfree,
             compound=compound,
             rolling_sharpe_window=rolling_sharpe_window)
@@ -100,6 +107,7 @@ class Tearsheet(BaseTearsheet):
     @classmethod
     def from_pnl_csv(cls, filepath_or_buffer, figsize=None,
                      max_cols_for_details=25, trim_outliers=None,
+                     how_to_aggregate=None,
                      pdf_filename=None, riskfree=0,
                      compound=True, rolling_sharpe_window=200):
         """
@@ -122,6 +130,11 @@ class Tearsheet(BaseTearsheet):
             discard returns that are more than this many standard deviations
             from the mean
 
+        how_to_aggregate : dict, optional
+            a dict of {fieldname: aggregation method} specifying how to aggregate
+            fields from intraday to daily. See the docstring for
+            `moonchart.utils.intraday_to_daily` for more details.
+
         pdf_filename : string, optional
             save tear sheet to this filepath as a PDF instead of displaying
 
@@ -142,6 +155,7 @@ class Tearsheet(BaseTearsheet):
         perf = DailyPerformance.from_pnl_csv(
             filepath_or_buffer,
             trim_outliers=trim_outliers,
+            how_to_aggregate=how_to_aggregate,
             riskfree=riskfree,
             compound=compound,
             rolling_sharpe_window=rolling_sharpe_window)

@@ -49,6 +49,7 @@ class ShortfallTearsheet(BaseTearsheet):
                   largest_n=None,
                   shift_x_positions=0,
                   figsize=None, trim_outliers=None,
+                  how_to_aggregate=None,
                   pdf_filename=None, riskfree=0,
                   compound=True, rolling_sharpe_window=200):
         """
@@ -95,6 +96,11 @@ class ShortfallTearsheet(BaseTearsheet):
             discard returns that are more than this many standard deviations
             from the mean
 
+        how_to_aggregate : dict, optional
+            a dict of {fieldname: aggregation method} specifying how to aggregate
+            fields from intraday to daily. See the docstring for
+            `moonchart.utils.intraday_to_daily` for more details.
+
         pdf_filename : string, optional
             save tear sheet to this filepath as a PDF instead of displaying
 
@@ -124,6 +130,7 @@ class ShortfallTearsheet(BaseTearsheet):
             start_date=start_date,
             end_date=end_date,
             trim_outliers=trim_outliers,
+            how_to_aggregate=how_to_aggregate,
             riskfree=riskfree,
             compound=compound,
             rolling_sharpe_window=rolling_sharpe_window)
@@ -133,6 +140,7 @@ class ShortfallTearsheet(BaseTearsheet):
             start_date=start_date,
             end_date=end_date,
             trim_outliers=trim_outliers,
+            how_to_aggregate=how_to_aggregate,
             riskfree=riskfree,
             compound=compound,
             rolling_sharpe_window=rolling_sharpe_window)
