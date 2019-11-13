@@ -314,7 +314,7 @@ class ShortfallTearsheet(BaseTearsheet):
 
         largest_shortfalls_raw = largest_shortfalls.copy()
 
-        largest_shortfalls.index = largest_shortfalls.index.set_names(["Date", "ConId"])
+        largest_shortfalls.index = largest_shortfalls.index.set_names(["Date", "Sid"])
         # format as pct
         largest_shortfalls = (largest_shortfalls * 100).round(2).astype(str) + "%"
 
@@ -322,9 +322,9 @@ class ShortfallTearsheet(BaseTearsheet):
         largest_shortfalls.insert(
             0,
             "Top {} Largest Shortfalls".format(largest_n),
-            largest_shortfalls.Date.dt.strftime("%Y-%m-%d").str.cat(largest_shortfalls.ConId, sep=" "))
+            largest_shortfalls.Date.dt.strftime("%Y-%m-%d").str.cat(largest_shortfalls.Sid, sep=" "))
 
-        largest_shortfalls = largest_shortfalls.drop(["Date","ConId"], axis=1)
+        largest_shortfalls = largest_shortfalls.drop(["Date","Sid"], axis=1)
 
         with sns.axes_style("white", {'axes.linewidth': 0}):
 
