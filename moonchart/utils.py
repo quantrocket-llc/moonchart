@@ -385,7 +385,7 @@ def intraday_to_daily(results, how=None):
 
         field_how = field_hows[field]
 
-        field_results = results.loc[field].astype(pd.np.float64)
+        field_results = results.loc[field].astype(np.float64)
         grouped = field_results.groupby(field_results.index.get_level_values("Date"))
 
         if field_how == "extreme":
