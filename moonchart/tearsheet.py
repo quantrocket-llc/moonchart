@@ -250,7 +250,7 @@ class Tearsheet(BaseTearsheet):
         stats.append(["End Date", agg_performance.returns.index.max().date().isoformat()])
 
         stats.append(['Total Months', round(
-            (agg_performance.returns.index.max() - agg_performance.returns.index.min()) / pd.Timedelta(1, 'M'))])
+            (agg_performance.returns.index.max() - agg_performance.returns.index.min()) / pd.Timedelta(365.25/12, 'D'))])
 
         stats.append(["", " Risk and Returns"])
         stats.append(["CAGR", "{0}%".format(round(agg_performance.cagr * 100, 1))])
