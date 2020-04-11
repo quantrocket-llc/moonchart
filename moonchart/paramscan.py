@@ -113,13 +113,12 @@ class ParamscanTearsheet(BaseTearsheet):
         summary["Start Date"] = returns.index.min().date().isoformat()
         summary["End Date"] = returns.index.max().date().isoformat()
 
-        with sns.axes_style("white", {'axes.linewidth': 0}):
+        with sns.axes_style("white"):
 
             fig = plt.figure("Parameter Scan Summary", figsize=(6,6))
 
             axis = fig.add_subplot(111)
-            axis.get_xaxis().set_visible(False)
-            axis.get_yaxis().set_visible(False)
+            axis.axis("off")
 
             table = axis.table(
                 cellText=[[v] for v in summary.values()],
@@ -128,7 +127,6 @@ class ParamscanTearsheet(BaseTearsheet):
 
             table.scale(1, 2)
             table.set_fontsize("large")
-            fig.tight_layout()
 
         # Plot 1d bar charts or 2d heat maps
         if results.columns.nlevels == 2 and heatmap_2d:

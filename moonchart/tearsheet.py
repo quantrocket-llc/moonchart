@@ -317,13 +317,12 @@ class Tearsheet(BaseTearsheet):
                 "Normalized CAGR (CAGR/Absolute Exposure)",
                 "{0}%".format(round(norm_cagr * 100, 1))])
 
-        with sns.axes_style("white", {'axes.linewidth': 0}):
+        with sns.axes_style("white"):
 
             fig = plt.figure("Performance Summary", figsize=(6,6))
 
             axis = fig.add_subplot(111)
-            axis.get_xaxis().set_visible(False)
-            axis.get_yaxis().set_visible(False)
+            axis.axis("off")
 
             headings, values = zip(*stats)
 
@@ -340,19 +339,17 @@ class Tearsheet(BaseTearsheet):
 
             table.scale(1, 2)
             table.set_fontsize("large")
-            fig.tight_layout()
 
     def _create_constituents_tearsheet(self, performance):
         """
         Create a tear sheet of the strategies or symbols in the data.
         """
-        with sns.axes_style("white", {'axes.linewidth': 0}):
+        with sns.axes_style("white"):
 
             fig = plt.figure("Strategies or Securities", figsize=(6,6))
 
             axis = fig.add_subplot(111)
-            axis.get_xaxis().set_visible(False)
-            axis.get_yaxis().set_visible(False)
+            axis.axis("off")
 
             cols = list(performance.returns.columns)
             if len(cols) > 58:
@@ -379,7 +376,6 @@ class Tearsheet(BaseTearsheet):
 
             table.scale(2, 2)
             table.set_fontsize("large")
-            fig.tight_layout()
 
     def create_returns_tearsheet(self, performance, agg_performance=None):
         """

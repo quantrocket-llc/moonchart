@@ -326,13 +326,12 @@ class ShortfallTearsheet(BaseTearsheet):
 
         largest_shortfalls = largest_shortfalls.drop(["Date","Sid"], axis=1)
 
-        with sns.axes_style("white", {'axes.linewidth': 0}):
+        with sns.axes_style("white"):
 
             fig = plt.figure("Top Shortfalls", figsize=(6,6))
 
             axis = fig.add_subplot(111)
-            axis.get_xaxis().set_visible(False)
-            axis.get_yaxis().set_visible(False)
+            axis.axis("off")
 
             largest_shortfalls_dict = largest_shortfalls.to_dict("split")
 
@@ -348,7 +347,6 @@ class ShortfallTearsheet(BaseTearsheet):
 
             table.scale(2, 2)
             table.set_fontsize("large")
-            fig.tight_layout()
 
         return largest_shortfalls_raw
 
@@ -522,13 +520,12 @@ class ShortfallTearsheet(BaseTearsheet):
                 ["{0}%".format(round((x_performance.cagr / x_performance.abs_exposures.mean()) * 100, 1)),
                  "{0}%".format(round((y_performance.cagr / y_performance.abs_exposures.mean()) * 100, 1))]])
 
-        with sns.axes_style("white", {'axes.linewidth': 0}):
+        with sns.axes_style("white"):
 
             fig = plt.figure("Performance Summary", figsize=(6,6))
 
             axis = fig.add_subplot(111)
-            axis.get_xaxis().set_visible(False)
-            axis.get_yaxis().set_visible(False)
+            axis.axis("off")
 
             headings, values = zip(*stats)
 
@@ -545,4 +542,3 @@ class ShortfallTearsheet(BaseTearsheet):
 
             table.scale(1, 2)
             table.set_fontsize("large")
-            fig.tight_layout()
