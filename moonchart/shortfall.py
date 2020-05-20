@@ -442,8 +442,8 @@ class ShortfallTearsheet(BaseTearsheet):
 
         stats.append(
             ['Total Months',
-             [round((x_performance.returns.index.max() - x_performance.returns.index.min()) / pd.Timedelta(1, 'M')),
-              round((y_performance.returns.index.max() - y_performance.returns.index.min()) / pd.Timedelta(1, 'M'))]])
+             [round((x_performance.returns.index.max() - x_performance.returns.index.min()) / pd.Timedelta(365.25/12, 'D')),
+              round((y_performance.returns.index.max() - y_performance.returns.index.min()) / pd.Timedelta(365.25/12, 'D'))]])
 
         stats.append([" Risk and Returns", ["", ""]])
         stats.append([
