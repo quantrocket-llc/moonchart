@@ -12,9 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import seaborn as sns
 import pandas as pd
 import numpy as np
 from .exceptions import MoonchartError
+
+def set_default_palette():
+    """
+    Sets the default palette so that the first 3 colors are
+    blue, green, red. This was the case in Matplotlib 2 but in
+    Matplotlib the default sequence is blue, orange, green, red,
+    which is not as good for Moonchart plots. This function
+    will remove orange from position 2 and put it at the end.
+    """
+    # Set seaborn default style
+    sns.set()
+
+    current_palette = sns.color_palette()
+    orange = (0.8666666666666667, 0.5176470588235295, 0.3215686274509804)
+    if current_palette[1] == orange:
+        current_palette.append(current_palette.pop(1))
+        sns.set_palette(current_palette)
 
 def get_zscores(returns):
     """

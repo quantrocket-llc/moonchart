@@ -23,9 +23,6 @@ from .utils import (
     get_cum_returns)
 from matplotlib.ticker import FuncFormatter
 
-# Set seaborn default style
-sns.set()
-
 class BaseTearsheet(object):
     """
     Base class for tear sheets.
