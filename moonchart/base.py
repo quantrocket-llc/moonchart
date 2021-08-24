@@ -239,7 +239,7 @@ class BaseTearsheet(object):
                     cum_commissions.name = "commissions"
                     cum_pnl = performance.cum_pnl
                     cum_pnl.name = "pnl"
-                    cum_gross_pnl = cum_pnl + cum_commissions.abs()
+                    cum_gross_pnl = cum_pnl + cum_commissions
                     cum_gross_pnl.name = "gross pnl"
                     try:
                         pnl_breakdown = pd.concat((cum_pnl, cum_gross_pnl, cum_commissions), axis=1, sort=True)
