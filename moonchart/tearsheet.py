@@ -41,6 +41,7 @@ class Tearsheet(BaseTearsheet):
                           max_cols_for_details=25, trim_outliers=None,
                           how_to_aggregate=None,
                           pdf_filename=None, riskfree=0,
+                          start_date=None, end_date=None,
                           compound=True, rolling_sharpe_window=200):
         """
         Create a full tear sheet from a moonshot backtest results CSV.
@@ -74,6 +75,12 @@ class Tearsheet(BaseTearsheet):
         riskfree : float, optional
             the riskfree rate (default 0)
 
+        start_date : str (YYYY-MM-DD), optional
+            truncate at this start date (otherwise include entire date range)
+
+        end_date : str (YYYY-MM-DD), optional
+            truncate at this end date (otherwise include entire date range)
+
         compound : bool
             True for compound/geometric returns, False for arithmetic returns.
             Default True
@@ -92,6 +99,8 @@ class Tearsheet(BaseTearsheet):
         """
         perf = DailyPerformance.from_moonshot_csv(
             filepath_or_buffer,
+            start_date=start_date,
+            end_date=end_date,
             trim_outliers=trim_outliers,
             how_to_aggregate=how_to_aggregate,
             riskfree=riskfree,
@@ -109,6 +118,7 @@ class Tearsheet(BaseTearsheet):
                      max_cols_for_details=25, trim_outliers=None,
                      how_to_aggregate=None,
                      pdf_filename=None, riskfree=0,
+                     start_date=None, end_date=None,
                      compound=True, rolling_sharpe_window=200):
         """
         Create a full tear sheet from a pnl CSV.
@@ -141,6 +151,12 @@ class Tearsheet(BaseTearsheet):
         riskfree : float, optional
             the riskfree rate (default 0)
 
+        start_date : str (YYYY-MM-DD), optional
+            truncate at this start date (otherwise include entire date range)
+
+        end_date : str (YYYY-MM-DD), optional
+            truncate at this end date (otherwise include entire date range)
+
         compound : bool
             True for compound/geometric returns, False for arithmetic returns.
             Default True
@@ -154,6 +170,8 @@ class Tearsheet(BaseTearsheet):
         """
         perf = DailyPerformance.from_pnl_csv(
             filepath_or_buffer,
+            start_date=start_date,
+            end_date=end_date,
             trim_outliers=trim_outliers,
             how_to_aggregate=how_to_aggregate,
             riskfree=riskfree,

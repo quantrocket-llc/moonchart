@@ -90,7 +90,7 @@ class ParamscanTearsheet(BaseTearsheet):
             with param vals as (possibly multi-level) columns
 
         heatmap_2d : bool
-            use heat maps for 2 paramscans; if False, use bar charts
+            use heat maps for 2-d paramscans; if False, use bar charts
 
         Returns
         -------
