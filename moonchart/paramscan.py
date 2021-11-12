@@ -17,6 +17,7 @@ import seaborn as sns
 from collections import OrderedDict
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 from .perf import DailyPerformance
 from .base import BaseTearsheet
 from .exceptions import MoonchartError
@@ -115,7 +116,7 @@ class ParamscanTearsheet(BaseTearsheet):
 
         with sns.axes_style("white"):
 
-            fig = plt.figure("Parameter Scan Summary", figsize=(6,6))
+            fig = plt.figure("Parameter Scan Header", figsize=(6, 6))
 
             axis = fig.add_subplot(111)
             axis.axis("off")
@@ -128,8 +129,10 @@ class ParamscanTearsheet(BaseTearsheet):
             table.scale(1, 2)
             table.set_fontsize("large")
 
+        is_2d = results.columns.nlevels == 2
+
         # Plot 1d bar charts or 2d heat maps
-        if results.columns.nlevels == 2 and heatmap_2d:
+        if is_2d and heatmap_2d:
             self._create_2d_heatmaps(results)
         else:
             self._create_1d_bar_charts(results)
@@ -144,7 +147,88 @@ class ParamscanTearsheet(BaseTearsheet):
         self._create_returns_plots(performance, subplot=111, extra_label=" (Aggregate)",
                                    figsize=figsize, legend_title=params_title)
 
+        self._create_summary_table(results)
+
         self._save_or_show()
+
+    def _create_summary_table(self, results):
+        """
+        Creates a summary table of results.
+        """
+        is_2d = results.columns.nlevels == 2
+
+        summary = results.drop("AggReturn", level="Field")
+        summary.index = summary.index.set_names([None, "Strategy"])
+        summary = summary.T.stack(level="Strategy")
+        summary = summary.round(2)
+        summary["TotalHoldings"] = summary["TotalHoldings"].round().astype(int)
+        for field in ("Cagr", "MaxDrawdown", "AbsExposure", "NormalizedCagr"):
+            summary[field] = (summary[field] * 100).astype(int).astype(str) + "%"
+
+        is_single_strategy = len(summary.index.get_level_values("Strategy").unique()) == 1
+        if is_single_strategy:
+            summary.index = summary.index.droplevel("Strategy")
+
+        returns_summary = summary[
+            ["Cagr", "Sharpe", "MaxDrawdown"]].copy()
+        exposure_summary = summary[
+            ["AbsExposure", "TotalHoldings", "NormalizedCagr"]].copy()
+
+        returns_summary = returns_summary.rename(columns={
+            "Cagr": "CAGR",
+            "Sharpe": "Sharpe",
+            "MaxDrawdown": "Max Drawdown",
+        })
+
+        exposure_summary = exposure_summary.rename(columns={
+            "AbsExposure": "Absolute Exposure",
+            "NormalizedCagr": "Normalized CAGR",
+            "TotalHoldings": "Avg Daily Holdings"
+        })
+
+        with sns.axes_style("white"):
+
+            fig = plt.figure(
+                "Parameter Scan Summary",
+                figsize=(
+                    (summary.index.nlevels + 3) * 2,
+                    max((len(summary), 4)) * 2))
+
+            for summary_df, subplot in (
+                (returns_summary, 211),
+                (exposure_summary, 212)
+            ):
+
+                axis = fig.add_subplot(subplot)
+                axis.axis("off")
+
+                all_cells = []
+
+                for idx, row in summary_df.to_dict(orient="index").items():
+                    row_cells = []
+                    if hasattr(idx, "__iter__"):
+                        row_cells.extend(list(idx))
+                    else:
+                        row_cells.extend([idx])
+                    row_cells.extend(list(row.values()))
+                    all_cells.append(row_cells)
+
+                table = axis.table(
+                    cellText=all_cells,
+                    colLabels=list(
+                        summary_df.index.names) + list(summary_df.columns))
+
+                table.scale(2, 4)
+                table.set_fontsize("x-large")
+
+                for (row, col), cell in table.get_celld().items():
+                    if (
+                        row == 0
+                        or col == 0
+                        or ((is_2d or not is_single_strategy) and col == 1)
+                        or (is_2d and not is_single_strategy and col == 2)):
+                        cell.set_text_props(
+                            fontproperties=FontProperties(weight='bold'))
 
     def _create_1d_bar_charts(self, results):
         """
