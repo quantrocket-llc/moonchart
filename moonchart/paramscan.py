@@ -206,7 +206,7 @@ class ParamscanTearsheet(BaseTearsheet):
 
                 for idx, row in summary_df.to_dict(orient="index").items():
                     row_cells = []
-                    if hasattr(idx, "__iter__"):
+                    if isinstance(idx, (list, tuple)):
                         row_cells.extend(list(idx))
                     else:
                         row_cells.extend([idx])
