@@ -26,10 +26,7 @@ setup(name='quantrocket-moonchart',
     license='Apache-2.0',
     packages=find_packages(),
     install_requires=[
-        # pinning the matplotlib version is a temporary measure to avoid
-        # the nuisance of small incremental matplotlib updates; it is not
-        # a hard requirement and can be removed at an opportune time
-        "matplotlib<=3.2.2",
+        "matplotlib",
         "pandas>=0.20",
         "seaborn",
         "quantrocket-client",
