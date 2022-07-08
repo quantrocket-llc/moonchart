@@ -1,1 +1,3 @@
 /quantrocket_moonchart.egg-info/
+*.pyc
+.tox/

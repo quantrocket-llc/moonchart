@@ -27,12 +27,12 @@ from copy import deepcopy
 
 BACKTEST_RESULTS = {
     'strategy-1': {
-        ('AbsExposure', '2018-12-03'): 0.333333333,
-        ('AbsExposure', '2018-12-04'): 0.333333333,
-        ('AbsExposure', '2018-12-05'): 0.333333333,
-        ('AbsWeight', '2018-12-03'): 0.333333333,
-        ('AbsWeight', '2018-12-04'): 0.333333333,
-        ('AbsWeight', '2018-12-05'): 0.333333333,
+        ('AbsExposure', '2018-12-03'): 0.333333,
+        ('AbsExposure', '2018-12-04'): 0.333333,
+        ('AbsExposure', '2018-12-05'): 0.333333,
+        ('AbsWeight', '2018-12-03'): 0.333333,
+        ('AbsWeight', '2018-12-04'): 0.333333,
+        ('AbsWeight', '2018-12-05'): 0.333333,
         ('Commission', '2018-12-03'): 0.0001,
         ('Commission', '2018-12-04'): 0.0001,
         ('Commission', '2018-12-05'): 0.0001,
@@ -52,18 +52,18 @@ BACKTEST_RESULTS = {
         ('Turnover', '2018-12-04'): 0.090909091,
         ('Turnover', '2018-12-05'): 0.151515152},
     'strategy-2': {
-        ('AbsExposure', '2018-12-03'): 0.333333333,
-        ('AbsExposure', '2018-12-04'): 0.333333333,
-        ('AbsExposure', '2018-12-05'): 0.333333333,
-        ('AbsWeight', '2018-12-03'): 0.333333333,
-        ('AbsWeight', '2018-12-04'): 0.333333333,
-        ('AbsWeight', '2018-12-05'): 0.333333333,
+        ('AbsExposure', '2018-12-03'): 0.333333,
+        ('AbsExposure', '2018-12-04'): 0.333333,
+        ('AbsExposure', '2018-12-05'): 0.333333,
+        ('AbsWeight', '2018-12-03'): 0.333333,
+        ('AbsWeight', '2018-12-04'): 0.333333,
+        ('AbsWeight', '2018-12-05'): 0.333333,
         ('Commission', '2018-12-03'): 0.0,
         ('Commission', '2018-12-04'): 0.0,
         ('Commission', '2018-12-05'): 0.0,
-        ('NetExposure', '2018-12-03'): 0.333333333,
-        ('NetExposure', '2018-12-04'): 0.333333333,
-        ('NetExposure', '2018-12-05'): 0.333333333,
+        ('NetExposure', '2018-12-03'): 0.333333,
+        ('NetExposure', '2018-12-04'): 0.333333,
+        ('NetExposure', '2018-12-05'): 0.333333,
         ('Return', '2018-12-03'): 0.00278717,
         ('Return', '2018-12-04'): -0.005031677,
         ('Return', '2018-12-05'): -0.004845368,
@@ -158,6 +158,21 @@ PNL_RESULTS = {
         ('Turnover', '2019-01-22', '16:01:00'): 0.01,
         ('Turnover', '2019-01-23', '23:59:59'): 0.02}}
 
+def round_results(results_dict_or_list, n=6):
+    """
+    Rounds the values in results_dict, which can be scalars or
+    lists.
+    """
+    if isinstance(results_dict_or_list, dict):
+        for key, value in results_dict_or_list.items():
+            if isinstance(value, list):
+                results_dict_or_list[key] = [round(v, n) for v in value]
+            else:
+                results_dict_or_list[key] = round(value, n)
+        return results_dict_or_list
+    else:
+        return [round(value, n) for value in results_dict_or_list]
+
 class DailyPerformanceTestCase(unittest.TestCase):
     """
     Test cases for DailyPerformance and AggregateDailyPerformance.
@@ -190,36 +205,36 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2018-12-03', '2018-12-04', '2018-12-05']
         )
         self.assertDictEqual(
-            perf.returns.to_dict(orient="list"),
-            {'strategy-1': [-0.002257125, -0.000375271, -0.002395708],
-             'strategy-2': [0.00278717, -0.005031677, -0.004845368]})
+            round_results(perf.returns.to_dict(orient="list")),
+            {'strategy-1': [-0.002257, -0.000375, -0.002396],
+             'strategy-2': [0.002787, -0.005032, -0.004845]})
 
         self.assertListEqual(
             list(perf.abs_exposures.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertDictEqual(
-            perf.abs_exposures.to_dict(orient="list"),
-            {'strategy-1': [0.333333333, 0.333333333, 0.333333333],
-             'strategy-2': [0.333333333, 0.333333333, 0.333333333]})
+            round_results(perf.abs_exposures.to_dict(orient="list")),
+            {'strategy-1': [0.333333, 0.333333, 0.333333],
+             'strategy-2': [0.333333, 0.333333, 0.333333]})
 
         self.assertListEqual(
             list(perf.net_exposures.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertDictEqual(
-            perf.net_exposures.to_dict(orient="list"),
-            {'strategy-1': [-0.03030303, 0.060606061, -0.090909091],
-             'strategy-2': [0.333333333, 0.333333333, 0.333333333]})
+            round_results(perf.net_exposures.to_dict(orient="list")),
+            {'strategy-1': [-0.030303, 0.060606, -0.090909],
+             'strategy-2': [0.333333, 0.333333, 0.333333]})
 
         self.assertListEqual(
             list(perf.turnover.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertDictEqual(
-            perf.turnover.to_dict(orient="list"),
-            {'strategy-1': [0.049062049, 0.090909091, 0.151515152],
-             'strategy-2': [3.47e-18, 0.0, 0.0]})
+            round_results(perf.turnover.to_dict(orient="list")),
+            {'strategy-1': [0.049062, 0.090909, 0.151515],
+             'strategy-2': [0.0, 0.0, 0.0]})
 
         self.assertListEqual(
             list(perf.total_holdings.index.strftime("%Y-%m-%d")),
@@ -262,12 +277,12 @@ class DailyPerformanceTestCase(unittest.TestCase):
             {'strategy-1': [1.0001, 1.0002, 1.0003], 'strategy-2': [1.0, 1.0, 1.003]})
 
         self.assertDictEqual(
-            perf.cagr.to_dict(),
-            {'strategy-1': -0.6009354029100387, 'strategy-2': -0.7272165531290371})
+            round_results(perf.cagr.to_dict()),
+            {'strategy-1': -0.600935, 'strategy-2': -0.727217})
 
         self.assertDictEqual(
-            perf.sharpe.to_dict(),
-            {'strategy-1': -23.574049805803934, 'strategy-2': -8.409034049060317}
+            round_results(perf.sharpe.to_dict()),
+            {'strategy-1': -23.57405, 'strategy-2': -8.409034}
         )
 
         self.assertListEqual(
@@ -275,9 +290,9 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertDictEqual(
-            perf.cum_returns.to_dict(orient="list"),
-            {'strategy-1': [0.997742875, 0.9973684510335559, 0.9949790474564671],
-             'strategy-2': [1.00278717, 0.9977414688608159, 0.9929070442753247]}
+            round_results(perf.cum_returns.to_dict(orient="list")),
+            {'strategy-1': [0.997743, 0.997368, 0.994979],
+            'strategy-2': [1.002787, 0.997741, 0.992907]}
         )
 
         self.assertListEqual(
@@ -285,14 +300,14 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertDictEqual(
-            perf.drawdowns.to_dict(orient="list"),
-            {'strategy-1': [0.0, -0.00037527100000001035, -0.0027700799602632387],
-             'strategy-2': [0.0, -0.005031676999999957, -0.009852664673277833]}
+            round_results(perf.drawdowns.to_dict(orient="list")),
+            {'strategy-1': [0.0, -0.000375, -0.00277],
+             'strategy-2': [0.0, -0.005032, -0.009853]}
         )
 
         self.assertDictEqual(
-            perf.max_drawdown.to_dict(),
-            {'strategy-1': -0.0027700799602632387, 'strategy-2': -0.009852664673277833})
+            round_results(perf.max_drawdown.to_dict()),
+            {'strategy-1': -0.00277, 'strategy-2': -0.009853})
 
     def test_from_moonshot_csv_agg_perf(self):
 
@@ -304,32 +319,32 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2018-12-03', '2018-12-04', '2018-12-05']
         )
         self.assertListEqual(
-            agg_perf.returns.tolist(),
-            [0.0005300449999999998, -0.005406948, -0.007241076])
+            round_results(agg_perf.returns.tolist()),
+            [0.00053, -0.005407, -0.007241])
 
         self.assertListEqual(
             list(agg_perf.abs_exposures.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertListEqual(
-            agg_perf.abs_exposures.tolist(),
-            [0.666666666, 0.666666666, 0.666666666])
+            round_results(agg_perf.abs_exposures.tolist()),
+            [0.666666, 0.666666, 0.666666])
 
         self.assertListEqual(
             list(agg_perf.net_exposures.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertListEqual(
-            agg_perf.net_exposures.tolist(),
-            [0.303030303, 0.393939394, 0.242424242])
+            round_results(agg_perf.net_exposures.tolist()),
+            [0.30303, 0.393939, 0.242424])
 
         self.assertListEqual(
             list(agg_perf.turnover.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertListEqual(
-            agg_perf.turnover.tolist(),
-            [0.04906204900000001, 0.090909091, 0.151515152])
+            round_results(agg_perf.turnover.tolist()),
+            [0.049062, 0.090909, 0.151515])
 
         self.assertListEqual(
             list(agg_perf.total_holdings.index.strftime("%Y-%m-%d")),
@@ -372,30 +387,30 @@ class DailyPerformanceTestCase(unittest.TestCase):
             [1.0001, 1.0002, 1.0033])
 
         self.assertEqual(
-            agg_perf.cagr,-0.8912867832023363)
+            round(agg_perf.cagr, 6),-0.891287)
 
         self.assertEqual(
-            agg_perf.sharpe, -15.785645344093775)
+            round(agg_perf.sharpe, 6), -15.785645)
 
         self.assertListEqual(
             list(agg_perf.cum_returns.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertListEqual(
-            agg_perf.cum_returns.tolist(),
-            [1.000530045, 0.9951202310742474, 0.9879144898519012])
+            round_results(agg_perf.cum_returns.tolist()),
+            [1.00053, 0.99512, 0.987914])
 
         self.assertListEqual(
             list(agg_perf.drawdowns.index.strftime("%Y-%m-%d")),
             ['2018-12-03', '2018-12-04', '2018-12-05'])
 
         self.assertListEqual(
-            agg_perf.drawdowns.tolist(),
-            [0.0, -0.005406947999999967, -0.012608871878603933]
+            round_results(agg_perf.drawdowns.tolist()),
+            [0.0, -0.005407, -0.012609]
         )
 
         self.assertEqual(
-            agg_perf.max_drawdown, -0.012608871878603933)
+            round(agg_perf.max_drawdown, 6), -0.012609)
 
     def test_from_pnl_csv(self):
 
@@ -407,9 +422,9 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00']
         )
         self.assertDictEqual(
-            perf.returns.to_dict(orient="list"),
-            {'strategy-a': [0.0, 0.00121226, 0.00400769],
-             'strategy-b': [0.0, 0.0008293, 0.01063083]})
+            round_results(perf.returns.to_dict(orient="list")),
+            {'strategy-a': [0.0, 0.001212, 0.004008],
+            'strategy-b': [0.0, 0.000829, 0.010631]})
 
         self.assertListEqual(
             list(perf.abs_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -432,8 +447,8 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
-            perf.turnover.to_dict(orient="list"),
-            {'strategy-a': [3.47e-18, 0.0, 0.0], 'strategy-b': [3.47e-18, 0.01, 0.02]})
+            round_results(perf.turnover.to_dict(orient="list")),
+            {'strategy-a': [0.0, 0.0, 0.0], 'strategy-b': [0.0, 0.01, 0.02]})
 
         self.assertListEqual(
             list(perf.total_holdings.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -473,8 +488,8 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
-            perf.cum_pnl.to_dict(orient="list"),
-           {'strategy-a': [0.0, 732.6318, 3195.9208000000003],
+            round_results(perf.cum_pnl.to_dict(orient="list")),
+           {'strategy-a': [0.0, 732.6318, 3195.9208],
             'strategy-b': [0.0, 501.1911, 7035.3196]})
 
         self.assertListEqual(
@@ -482,17 +497,17 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
-            perf.commissions.to_dict(orient="list"),
-            {'strategy-a': [0.0, 2.54e-05, 7.11e-05],
-             'strategy-b': [0.0, 0.000179206, 5.55e-05]})
+            round_results(perf.commissions.to_dict(orient="list")),
+            {'strategy-a': [0.0, 2.5e-05, 7.1e-05],
+            'strategy-b': [0.0, 0.000179, 5.6e-05]})
 
         self.assertDictEqual(
-            perf.cagr.to_dict(),
-            {'strategy-a': 1.5884135772875698, 'strategy-b': 7.013847123487736})
+            round_results(perf.cagr.to_dict()),
+            {'strategy-a': 1.588414, 'strategy-b': 7.013847})
 
         self.assertDictEqual(
-            perf.sharpe.to_dict(),
-            {'strategy-a': 13.439089525191742, 'strategy-b': 10.255814111748151}
+            round_results(perf.sharpe.to_dict()),
+            {'strategy-a': 13.43909, 'strategy-b': 10.255814}
         )
 
         self.assertListEqual(
@@ -500,9 +515,9 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
-            perf.cum_returns.to_dict(orient="list"),
-            {'strategy-a': [1.0, 1.00121226, 1.0052248083622792],
-             'strategy-b': [1.0, 1.0008293, 1.011468946147319]}
+            round_results(perf.cum_returns.to_dict(orient="list")),
+            {'strategy-a': [1.0, 1.001212, 1.005225],
+            'strategy-b': [1.0, 1.000829, 1.011469]}
         )
 
         self.assertListEqual(
@@ -527,8 +542,8 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00']
         )
         self.assertListEqual(
-            agg_perf.returns.tolist(),
-            [0.0, 0.00204156, 0.014638520000000002])
+            round_results(agg_perf.returns.tolist()),
+            [0.0, 0.002042, 0.014639])
 
         self.assertListEqual(
             list(agg_perf.abs_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -551,8 +566,8 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
-            agg_perf.turnover.tolist(),
-            [6.94e-18, 0.01, 0.02])
+            round_results(agg_perf.turnover.tolist()),
+            [0.0, 0.01, 0.02])
 
         self.assertListEqual(
             list(agg_perf.total_holdings.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -567,8 +582,8 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
-            agg_perf.pnl.tolist(),
-            [0.0, 1233.8229000000001, 8997.4175])
+            round_results(agg_perf.pnl.tolist()),
+            [0.0, 1233.8229, 8997.4175])
 
         self.assertListEqual(
             list(agg_perf.commission_amounts.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -591,30 +606,30 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
-            agg_perf.cum_pnl.tolist(),
-           [0.0, 1233.8229000000001, 10231.240399999999])
+            round_results(agg_perf.cum_pnl.tolist()),
+           [0.0, 1233.8229, 10231.2404])
 
         self.assertListEqual(
             list(agg_perf.commissions.index.strftime("%Y-%m-%d %H:%M:%S")),
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
-            agg_perf.commissions.tolist(),
-            [0.0, 0.000204606, 0.0001266])
+            round_results(agg_perf.commissions.tolist()),
+            [0.0, 0.000205, 0.000127])
 
         self.assertEqual(
-            agg_perf.cagr, 19.581032951701545)
+            round(agg_perf.cagr, 6), 19.581033)
 
         self.assertEqual(
-            agg_perf.sharpe, 11.132759642908027)
+            round(agg_perf.sharpe, 6), 11.13276)
 
         self.assertListEqual(
             list(agg_perf.cum_returns.index.strftime("%Y-%m-%d %H:%M:%S")),
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertListEqual(
-            agg_perf.cum_returns.tolist(),
-            [1.0, 1.00204156, 1.0167099654168914]
+            round_results(agg_perf.cum_returns.tolist()),
+            [1.0, 1.002042, 1.01671]
         )
 
         self.assertListEqual(
@@ -678,30 +693,30 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         perf = DailyPerformance.from_pnl_csv("pnl.csv")
         self.assertDictEqual(
-            perf.sharpe.to_dict(),
-            {'strategy-a': 13.439089525191742, 'strategy-b': 10.255814111748151}
+            round_results(perf.sharpe.to_dict()),
+            {'strategy-a': 13.43909, 'strategy-b': 10.255814}
         )
 
         perf = DailyPerformance.from_pnl_csv("pnl.csv", riskfree=0.02/252)
         self.assertDictEqual(
-            perf.sharpe.to_dict(),
-            {'strategy-a': 13.439089525191742, 'strategy-b': 10.255814111748151}
+            round_results(perf.sharpe.to_dict()),
+            {'strategy-a': 13.43909, 'strategy-b': 10.255814}
         )
 
     def test_compound(self):
 
         perf = DailyPerformance.from_moonshot_csv("backtest.csv")
         self.assertDictEqual(
-            perf.cum_returns.to_dict(orient="list"),
-            {'strategy-1': [0.997742875, 0.9973684510335559, 0.9949790474564671],
-             'strategy-2': [1.00278717, 0.9977414688608159, 0.9929070442753247]}
+            round_results(perf.cum_returns.to_dict(orient="list")),
+            {'strategy-1': [0.997743, 0.997368, 0.994979],
+            'strategy-2': [1.002787, 0.997741, 0.992907]}
         )
 
         perf = DailyPerformance.from_moonshot_csv("backtest.csv", compound=False)
         self.assertDictEqual(
-            perf.cum_returns.to_dict(orient="list"),
-            {'strategy-1': [0.997742875, 0.997367604, 0.994971896],
-             'strategy-2': [1.00278717, 0.997755493, 0.992910125]}
+            round_results(perf.cum_returns.to_dict(orient="list")),
+            {'strategy-1': [0.997743, 0.997368, 0.994972],
+            'strategy-2': [1.002787, 0.997755, 0.99291]}
         )
 
     def test_rolling_sharpe_window(self):
@@ -726,22 +741,22 @@ class DailyPerformanceTestCase(unittest.TestCase):
         zscores = get_zscores(perf.returns)
 
         self.assertDictEqual(
-            zscores.to_dict(orient="list"),
-            {'strategy-1': [-0.5148664345304096, 1.152522272022025, -0.6376558374916148],
-             'strategy-2': [1.1544487988426575, -0.5981044889340401, -0.5563443099086175]}
+            round_results(zscores.to_dict(orient="list")),
+            {'strategy-1': [-0.514866, 1.152522, -0.637656],
+             'strategy-2': [1.154449, -0.598104, -0.556344]}
         )
 
         self.assertDictEqual(
-            perf.returns.to_dict(orient="list"),
-            {'strategy-1': [-0.002257125, -0.000375271, -0.002395708],
-             'strategy-2': [0.00278717, -0.005031677, -0.004845368]}
+           round_results( perf.returns.to_dict(orient="list")),
+            {'strategy-1': [-0.002257, -0.000375, -0.002396],
+            'strategy-2': [0.002787, -0.005032, -0.004845]}
         )
 
         perf = DailyPerformance.from_moonshot_csv("backtest.csv", trim_outliers=1.154)
         self.assertDictEqual(
-            perf.returns.to_dict(orient="list"),
-            {'strategy-1': [-0.002257125, -0.000375271, -0.002395708],
-             'strategy-2': [0.0, -0.005031677, -0.004845368]}
+            round_results(perf.returns.to_dict(orient="list")),
+            {'strategy-1': [-0.002257, -0.000375, -0.002396],
+            'strategy-2': [0.0, -0.005032, -0.004845]}
         )
 
     def test_benchmark(self):
@@ -765,6 +780,6 @@ class DailyPerformanceTestCase(unittest.TestCase):
         perf = DailyPerformance.from_moonshot_csv("backtest.csv")
 
         self.assertListEqual(
-            perf.benchmark_returns.tolist(),
-            [0.0, 0.02237762237762242, -0.002540551104162625]
+            round_results(perf.benchmark_returns.tolist()),
+            [0.0, 0.022378, -0.002541]
         )

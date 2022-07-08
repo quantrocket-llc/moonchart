@@ -17,6 +17,7 @@
 import unittest
 import os
 import pandas as pd
+import numpy as np
 from quantrocket.moonshot import read_moonshot_csv
 from quantrocket.blotter import read_pnl_csv
 from moonchart.utils import intraday_to_daily
@@ -105,9 +106,9 @@ MOONSHOT_INTRADAY_DETAILED_RESULTS = {
         ('Commission', '2018-12-19', '09:00:00'): 0.0,
         ('Commission', '2018-12-19', '10:00:00'): 0.00002,
         ('Commission', '2018-12-19', '11:00:00'): 0.0,
-        ('Mavg', '2018-12-18', '09:00:00'): None,
-        ('Mavg', '2018-12-18', '10:00:00'): None,
-        ('Mavg', '2018-12-18', '11:00:00'): None,
+        ('Mavg', '2018-12-18', '09:00:00'): np.nan,
+        ('Mavg', '2018-12-18', '10:00:00'): np.nan,
+        ('Mavg', '2018-12-18', '11:00:00'): np.nan,
         ('Mavg', '2018-12-19', '09:00:00'): 1.1369470000000004,
         ('Mavg', '2018-12-19', '10:00:00'): 1.1370885000000004,
         ('Mavg', '2018-12-19', '11:00:00'): 1.1372462000000003,
@@ -166,21 +167,21 @@ MOONSHOT_INTRADAY_DETAILED_RESULTS = {
         ('AbsWeight', '2018-12-19', '09:00:00'): 0.2,
         ('AbsWeight', '2018-12-19', '10:00:00'): 0.2,
         ('AbsWeight', '2018-12-19', '11:00:00'): 0.2,
-        ('Benchmark', '2018-12-18', '09:00:00'): None,
-        ('Benchmark', '2018-12-18', '10:00:00'): None,
-        ('Benchmark', '2018-12-18', '11:00:00'): None,
-        ('Benchmark', '2018-12-19', '09:00:00'): None,
-        ('Benchmark', '2018-12-19', '10:00:00'): None,
-        ('Benchmark', '2018-12-19', '11:00:00'): None,
+        ('Benchmark', '2018-12-18', '09:00:00'): np.nan,
+        ('Benchmark', '2018-12-18', '10:00:00'): np.nan,
+        ('Benchmark', '2018-12-18', '11:00:00'): np.nan,
+        ('Benchmark', '2018-12-19', '09:00:00'): np.nan,
+        ('Benchmark', '2018-12-19', '10:00:00'): np.nan,
+        ('Benchmark', '2018-12-19', '11:00:00'): np.nan,
         ('Commission', '2018-12-18', '09:00:00'): 0.0,
         ('Commission', '2018-12-18', '10:00:00'): 0.0,
         ('Commission', '2018-12-18', '11:00:00'): 0.0,
         ('Commission', '2018-12-19', '09:00:00'): 0.0,
         ('Commission', '2018-12-19', '10:00:00'): 0.00001,
         ('Commission', '2018-12-19', '11:00:00'): 0.00002,
-        ('Mavg', '2018-12-18', '09:00:00'): None,
-        ('Mavg', '2018-12-18', '10:00:00'): None,
-        ('Mavg', '2018-12-18', '11:00:00'): None,
+        ('Mavg', '2018-12-18', '09:00:00'): np.nan,
+        ('Mavg', '2018-12-18', '10:00:00'): np.nan,
+        ('Mavg', '2018-12-18', '11:00:00'): np.nan,
         ('Mavg', '2018-12-19', '09:00:00'): 1.2640600000000104,
         ('Mavg', '2018-12-19', '10:00:00'): 1.2641065000000105,
         ('Mavg', '2018-12-19', '11:00:00'): 1.2642211000000103,
@@ -657,6 +658,15 @@ PNL_INTRADAY_DETAILED_RESULTS = {
         ('Turnover', '2019-06-25', '16:00:02'): 0.0,
         ('Turnover', '2019-06-25', '16:02:01'): 0.0}}
 
+def round_results(results_dict, n=6):
+    for key1, inner_dict in results_dict.items():
+        for key2, value in inner_dict.items():
+            if not isinstance(value, float):
+                continue
+            results_dict[key1][key2] = round(value, n)
+
+    return results_dict
+
 class IntradayToDailyTestCase(unittest.TestCase):
     """
     Test cases for `moonchart.utils.intraday_to_daily`.
@@ -682,7 +692,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
         daily_results = daily_results.set_index(["Field", "Date"])
 
         self.assertDictEqual(
-            daily_results.to_dict(),
+            round_results(daily_results.to_dict()),
             {'fx-revert': {
                 # max
                 ('AbsExposure', '2018-12-18'): 0.0,
@@ -701,16 +711,16 @@ class IntradayToDailyTestCase(unittest.TestCase):
                 ('NetExposure', '2018-12-19'): 2.0,
                 # sum
                 ('Return', '2018-12-18'): 0.0,
-                ('Return', '2018-12-19'): 0.0005820400950750315,
+                ('Return', '2018-12-19'): 0.000582,
                 # sum
                 ('Slippage', '2018-12-18'): 4e-05,
-                ('Slippage', '2018-12-19'): 5.000000000000001e-05,
+                ('Slippage', '2018-12-19'): 5e-05,
                 # max
                 ('TotalHoldings', '2018-12-18'): 0.0,
                 ('TotalHoldings', '2018-12-19'): 5.0,
                 # sum
                 ('Turnover', '2018-12-18'): 0.1,
-                ('Turnover', '2018-12-19'): 0.30000000000000004}}
+                ('Turnover', '2018-12-19'): 0.3}}
         )
 
     def test_moonshot_detailed_intraday_to_daily(self):
@@ -732,7 +742,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
         self.maxDiff = None
 
         self.assertDictEqual(
-            daily_results.to_dict(),
+            round_results(daily_results.fillna("nan").to_dict()),
             {'EUR.USD(12087792)': { # max
                                    ('AbsExposure', '2018-12-18'): 0.0,
                                    ('AbsExposure', '2018-12-19'): 0.2,
@@ -750,7 +760,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
                                    ('NetExposure', '2018-12-19'): 0.2,
                                    # sum
                                    ('Return', '2018-12-18'): 0.0,
-                                   ('Return', '2018-12-19'): 0.00035730412741801225,
+                                   ('Return', '2018-12-19'): 0.000357,
                                    # sum
                                    ('Slippage', '2018-12-18'): 0.0,
                                    ('Slippage', '2018-12-19'): 4e-05,
@@ -759,7 +769,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
                                    ('TotalHoldings', '2018-12-19'): 2.0,
                                    # sum
                                    ('Turnover', '2018-12-18'): 0.0,
-                                   ('Turnover', '2018-12-19'): 0.30000000000000004,
+                                   ('Turnover', '2018-12-19'): 0.3,
                                    # extreme
                                    ('Weight', '2018-12-18'): 0.0,
                                    ('Weight', '2018-12-19'): 0.2},
@@ -770,20 +780,20 @@ class IntradayToDailyTestCase(unittest.TestCase):
                                    ('AbsWeight', '2018-12-18'): 0.0,
                                    ('AbsWeight', '2018-12-19'): 0.2,
                                    # last
-                                   ('Benchmark', '2018-12-18'): None,
-                                   ('Benchmark', '2018-12-19'): None,
+                                   ('Benchmark', '2018-12-18'): 'nan',
+                                   ('Benchmark', '2018-12-19'): 'nan',
                                    # sum
                                    ('Commission', '2018-12-18'): 0.0,
-                                   ('Commission', '2018-12-19'): 3.0000000000000004e-05,
+                                   ('Commission', '2018-12-19'): 3e-05,
                                    # extreme
                                    ('NetExposure', '2018-12-18'): 0.0,
                                    ('NetExposure', '2018-12-19'): 0.3,
                                    # sum
                                    ('Return', '2018-12-18'): 0.0,
-                                   ('Return', '2018-12-19'): 0.0007114899464124138,
+                                   ('Return', '2018-12-19'): 0.000711,
                                    # sum
                                    ('Slippage', '2018-12-18'): 0.0,
-                                   ('Slippage', '2018-12-19'): 3.0000000000000004e-05,
+                                   ('Slippage', '2018-12-19'): 3e-05,
                                    # max
                                    ('TotalHoldings', '2018-12-18'): 0.0,
                                    ('TotalHoldings', '2018-12-19'): 1.0,
@@ -809,36 +819,38 @@ class IntradayToDailyTestCase(unittest.TestCase):
         daily_results.loc[:, "Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
         daily_results = daily_results.set_index(["Field", "Date"])
 
+        self.maxDiff = None
+
         self.assertDictEqual(
-            daily_results.to_dict(),
+            round_results(daily_results.to_dict()),
             {'my-strategy': {
                 # max
-                ('AbsExposure', '2019-06-24'): 0.09748141,
-                ('AbsExposure', '2019-06-25'): 0.07527931,
+                ('AbsExposure', '2019-06-24'): 0.097481,
+                ('AbsExposure', '2019-06-25'): 0.075279,
                 # sum
-                ('Commission', '2019-06-24'): 0.0002585722866680238,
-                ('Commission', '2019-06-25'): 3.102056177303526e-05,
+                ('Commission', '2019-06-24'): 0.000259,
+                ('Commission', '2019-06-25'): 3.1e-05,
                 # Sum
-                ('CommissionAmount', '2019-06-24'): 166.21089999999998,
+                ('CommissionAmount', '2019-06-24'): 166.2109,
                 ('CommissionAmount', '2019-06-25'): 19.9724,
                 # extreme
-                ('NetExposure', '2019-06-24'): -0.09748141,
-                ('NetExposure', '2019-06-25'): 0.07527931,
+                ('NetExposure', '2019-06-24'): -0.097481,
+                ('NetExposure', '2019-06-25'): 0.075279,
                 # mean
-                ('NetLiquidation', '2019-06-24'): 142958.4665052012,
-                ('NetLiquidation', '2019-06-25'): 143843.9170163928,
+                ('NetLiquidation', '2019-06-24'): 142958.466505,
+                ('NetLiquidation', '2019-06-25'): 143843.917016,
                 # sum
-                ('Pnl', '2019-06-24'): 98.68529999999981,
+                ('Pnl', '2019-06-24'): 98.6853,
                 ('Pnl', '2019-06-25'): 2599.7876,
                 # sum
-                ('Return', '2019-06-24'): 0.00013763000000000002,
-                ('Return', '2019-06-25'): 0.00360786,
+                ('Return', '2019-06-24'): 0.000138,
+                ('Return', '2019-06-25'): 0.003608,
                 # max
                 ('TotalHoldings', '2019-06-24'): 4.0,
                 ('TotalHoldings', '2019-06-25'): 3.0,
                 # sum
-                ('Turnover', '2019-06-24'): 0.1949628293596563,
-                ('Turnover', '2019-06-25'): 0.15055861040610052}})
+                ('Turnover', '2019-06-24'): 0.194963,
+                ('Turnover', '2019-06-25'): 0.150559}})
 
     def test_pnl_detailed_intraday_to_daily(self):
 
@@ -859,19 +871,19 @@ class IntradayToDailyTestCase(unittest.TestCase):
         self.maxDiff = None
 
         self.assertDictEqual(
-            daily_results.to_dict(),
+            round_results(daily_results.to_dict()),
             {'CBL(5474)': {
                 # max
-                ('AbsExposure', '2019-06-24'): 0.02216167,
+                ('AbsExposure', '2019-06-24'): 0.022162,
                 ('AbsExposure', '2019-06-25'): 0.0,
                 # sum
-                ('Commission', '2019-06-24'): 0.00019513925495776003,
+                ('Commission', '2019-06-24'): 0.000195,
                 ('Commission', '2019-06-25'): 0.0,
                 # sum
                 ('CommissionAmount', '2019-06-24'): 139.9264,
                 ('CommissionAmount', '2019-06-25'): 0.0,
                 # extreme
-                ('NetExposure', '2019-06-24'): -0.02216167,
+                ('NetExposure', '2019-06-24'): -0.022162,
                 ('NetExposure', '2019-06-25'): 0.0,
                 # mean
                 ('NetLiquidation', '2019-06-24'): 717059.21,
@@ -889,26 +901,26 @@ class IntradayToDailyTestCase(unittest.TestCase):
                 ('Price', '2019-06-24'): 1.0,
                 ('Price', '2019-06-25'): 1.0,
                 # sum
-                ('Return', '2019-06-24'): 0.017900000000000003,
+                ('Return', '2019-06-24'): 0.0179,
                 ('Return', '2019-06-25'): 0.0,
                 # max
                 ('TotalHoldings', '2019-06-24'): 1.0,
                 ('TotalHoldings', '2019-06-25'): 0.0,
                 # sum
-                ('Turnover', '2019-06-24'): 0.04432334,
+                ('Turnover', '2019-06-24'): 0.044323,
                 ('Turnover', '2019-06-25'): 0.0},
              'KFY(6477845)': {
                  # max
-                 ('AbsExposure', '2019-06-24'): 0.02479879,
+                 ('AbsExposure', '2019-06-24'): 0.024799,
                  ('AbsExposure', '2019-06-25'): 0.0,
                  # sum
-                 ('Commission', '2019-06-24'): 4.5517858978479615e-06,
+                 ('Commission', '2019-06-24'): 5e-06,
                  ('Commission', '2019-06-25'): 0.0,
                  # sum
                  ('CommissionAmount', '2019-06-24'): 3.2639,
                  ('CommissionAmount', '2019-06-25'): 0.0,
                  # extreme
-                 ('NetExposure', '2019-06-24'): -0.02479879,
+                 ('NetExposure', '2019-06-24'): -0.024799,
                  ('NetExposure', '2019-06-25'): 0.0,
                  # mean
                  ('NetLiquidation', '2019-06-24'): 717059.21,
@@ -926,13 +938,13 @@ class IntradayToDailyTestCase(unittest.TestCase):
                  ('Price', '2019-06-24'): 39.28,
                  ('Price', '2019-06-25'): 39.28,
                  # sum
-                 ('Return', '2019-06-24'): 0.00469743,
+                 ('Return', '2019-06-24'): 0.004697,
                  ('Return', '2019-06-25'): 0.0,
                  # max
                  ('TotalHoldings', '2019-06-24'): 1.0,
                  ('TotalHoldings', '2019-06-25'): 0.0,
                  # sum
-                 ('Turnover', '2019-06-24'): 0.04959758,
+                 ('Turnover', '2019-06-24'): 0.049598,
                  ('Turnover', '2019-06-25'): 0.0}}
         )
 
@@ -959,19 +971,19 @@ class IntradayToDailyTestCase(unittest.TestCase):
         self.maxDiff = None
 
         self.assertDictEqual(
-            daily_results.to_dict(),
+            round_results(daily_results.to_dict()),
             {'CBL(5474)': {
                 # max
-                ('AbsExposure', '2019-06-24'): 0.02216167,
+                ('AbsExposure', '2019-06-24'): 0.022162,
                 ('AbsExposure', '2019-06-25'): 0.0,
                 # sum
-                ('Commission', '2019-06-24'): 0.00019513925495776003,
+                ('Commission', '2019-06-24'): 0.000195,
                 ('Commission', '2019-06-25'): 0.0,
                 # sum
                 ('CommissionAmount', '2019-06-24'): 139.9264,
                 ('CommissionAmount', '2019-06-25'): 0.0,
                 # mean
-                ('NetExposure', '2019-06-24'): -0.0166212525,
+                ('NetExposure', '2019-06-24'): -0.016621,
                 ('NetExposure', '2019-06-25'): 0.0,
                 # mean
                 ('NetLiquidation', '2019-06-24'): 717059.21,
@@ -989,26 +1001,26 @@ class IntradayToDailyTestCase(unittest.TestCase):
                 ('Price', '2019-06-24'): 1.0,
                 ('Price', '2019-06-25'): 1.0,
                 # sum
-                ('Return', '2019-06-24'): 0.017900000000000003,
+                ('Return', '2019-06-24'): 0.0179,
                 ('Return', '2019-06-25'): 0.0,
                 # max
                 ('TotalHoldings', '2019-06-24'): 1.0,
                 ('TotalHoldings', '2019-06-25'): 0.0,
                 # sum
-                ('Turnover', '2019-06-24'): 0.04432334,
+                ('Turnover', '2019-06-24'): 0.044323,
                 ('Turnover', '2019-06-25'): 0.0},
              'KFY(6477845)': {
                  # max
-                 ('AbsExposure', '2019-06-24'): 0.02479879,
+                 ('AbsExposure', '2019-06-24'): 0.024799,
                  ('AbsExposure', '2019-06-25'): 0.0,
                  # sum
-                 ('Commission', '2019-06-24'): 4.5517858978479615e-06,
+                 ('Commission', '2019-06-24'): 5e-06,
                  ('Commission', '2019-06-25'): 0.0,
                  # sum
                  ('CommissionAmount', '2019-06-24'): 3.2639,
                  ('CommissionAmount', '2019-06-25'): 0.0,
                  # mean
-                 ('NetExposure', '2019-06-24'): -0.012399395,
+                 ('NetExposure', '2019-06-24'): -0.012399,
                  ('NetExposure', '2019-06-25'): 0.0,
                  # mean
                  ('NetLiquidation', '2019-06-24'): 717059.21,
@@ -1026,12 +1038,12 @@ class IntradayToDailyTestCase(unittest.TestCase):
                  ('Price', '2019-06-24'): 40.05,
                  ('Price', '2019-06-25'): 39.28,
                  # sum
-                 ('Return', '2019-06-24'): 0.00469743,
+                 ('Return', '2019-06-24'): 0.004697,
                  ('Return', '2019-06-25'): 0.0,
                  # max
                  ('TotalHoldings', '2019-06-24'): 1.0,
                  ('TotalHoldings', '2019-06-25'): 0.0,
                  # sum
-                 ('Turnover', '2019-06-24'): 0.04959758,
+                 ('Turnover', '2019-06-24'): 0.049598,
                  ('Turnover', '2019-06-25'): 0.0}}
         )
