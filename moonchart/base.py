@@ -147,7 +147,7 @@ class BaseTearsheet(object):
                 max_return = max_return.max(axis=0)
             # If the price more than doubled, use a log scale
             if max_return >= 2:
-                axis.set_yscale("log", basey=2)
+                axis.set_yscale("log", base=2)
                 axis.set_ylabel("Cumulative return (log scale)")
             else:
                 self._y_format_at_least_two_decimal_places(axis)
@@ -276,7 +276,7 @@ class BaseTearsheet(object):
 
                 # If the price more than doubled, use a log scale
                 if max_return >= 2:
-                    axis.set_yscale("log", basey=2)
+                    axis.set_yscale("log", base=2)
                     axis.set_ylabel("Cumulative return (log scale)")
                 else:
                     self._y_format_at_least_two_decimal_places(axis)
