@@ -94,7 +94,7 @@ class Tearsheet(BaseTearsheet):
 
         Examples
         --------
-        >>> from moonshot import Tearsheet
+        >>> from moonchart import Tearsheet
         >>> Tearsheet.from_moonshot_csv("backtest_results.csv")
         """
         perf = DailyPerformance.from_moonshot_csv(

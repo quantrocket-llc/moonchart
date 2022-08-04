@@ -121,7 +121,7 @@ class ShortfallTearsheet(BaseTearsheet):
 
         Examples
         --------
-        >>> from moonshot import ShortfallTearsheet
+        >>> from moonchart import ShortfallTearsheet
         >>> ShortfallTearsheet.from_csvs("backtest.csv", "pnl.csv")
         """
 

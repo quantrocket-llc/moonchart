@@ -73,7 +73,7 @@ class ParamscanTearsheet(BaseTearsheet):
 
         Examples
         --------
-        >>> from moonshot import ParamscanTearsheet
+        >>> from moonchart import ParamscanTearsheet
         >>> ParamscanTearsheet.from_moonshot_csv("paramscan_results.csv")
         """
         results = pd.read_csv(filepath_or_buffer)
