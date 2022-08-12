@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# To run: python -m unittest discover -s tests/ -p test*.py -t .
+# To run: pytest path/to/moonchart/tests -v
 
 import unittest
 import os
