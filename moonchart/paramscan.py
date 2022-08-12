@@ -24,15 +24,15 @@ from .exceptions import MoonchartError
 
 class ParamscanTearsheet(BaseTearsheet):
 
-    def _from_moonshot(self, results):
+    def _from_df(self, results):
         """
-        Creates a param scan tear sheet from a moonshot param scan results
+        Creates a param scan tear sheet from a param scan results
         DataFrame.
         """
         if "StrategyOrDate" not in results.columns:
             raise MoonchartError(
                 "DataFrame contains no 'StrategyOrDate' column, "
-                "are you sure this came from a Moonshot parameter scan?")
+                "are you sure this came from a parameter scan?")
         idx_cols=list(results.columns)
         idx_cols.remove("Value")
         results = results.set_index(idx_cols)
@@ -52,9 +52,10 @@ class ParamscanTearsheet(BaseTearsheet):
         return self.create_full_tearsheet(results)
 
     @classmethod
-    def from_moonshot_csv(cls, filepath_or_buffer, figsize=None, pdf_filename=None):
+    def from_csv(cls, filepath_or_buffer, figsize=None, pdf_filename=None):
         """
-        Create a parameter scan tear sheet from a Moonshot paramscan results CSV.
+        Create a tear sheet from a parameter scan results CSV from Moonshot or
+        Zipline.
 
         Parameters
         ----------
@@ -74,11 +75,22 @@ class ParamscanTearsheet(BaseTearsheet):
         Examples
         --------
         >>> from moonchart import ParamscanTearsheet
-        >>> ParamscanTearsheet.from_moonshot_csv("paramscan_results.csv")
+        >>> ParamscanTearsheet.from_csv("paramscan_results.csv")
         """
         results = pd.read_csv(filepath_or_buffer)
         t = cls(figsize=figsize, pdf_filename=pdf_filename)
-        return t._from_moonshot(results)
+        return t._from_df(results)
+
+    @classmethod
+    def from_moonshot_csv(cls, *args, **kwargs):
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("always", DeprecationWarning)
+            warnings.warn(
+                "ParamscanTearsheet.from_moonshot_csv is deprecated and will be "
+                "removed in a future release, please use ParamscanTearsheet.from_csv "
+                "instead", DeprecationWarning)
+            return cls.from_csv(*args, **kwargs)
 
     def create_full_tearsheet(self, results, heatmap_2d=True):
         """

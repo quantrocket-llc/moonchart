@@ -255,7 +255,7 @@ class DailyPerformance(object):
                 raise
             results = pd.read_csv(filepath_or_buffer)
             if "StrategyOrDate" in results.columns:
-                raise MoonchartError("this is a parameter scan CSV, please use ParamscanTearsheet.from_moonshot_csv")
+                raise MoonchartError("this looks like a parameter scan CSV, please use ParamscanTearsheet.from_csv")
             else:
                 raise
 
