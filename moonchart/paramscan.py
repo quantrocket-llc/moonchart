@@ -83,14 +83,14 @@ class ParamscanTearsheet(BaseTearsheet):
 
     @classmethod
     def from_moonshot_csv(cls, *args, **kwargs):
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("always", DeprecationWarning)
-            warnings.warn(
-                "ParamscanTearsheet.from_moonshot_csv is deprecated and will be "
-                "removed in a future release, please use ParamscanTearsheet.from_csv "
-                "instead", DeprecationWarning)
-            return cls.from_csv(*args, **kwargs)
+        """
+        Create a tear sheet from a parameter scan results CSV from Moonshot or
+        Zipline.
+
+        This method is an alias for ParamscanTearsheet.from_csv. Please see its
+        docstring for more information.
+        """
+        return cls.from_csv(*args, **kwargs)
 
     def create_full_tearsheet(self, results, heatmap_2d=True):
         """
