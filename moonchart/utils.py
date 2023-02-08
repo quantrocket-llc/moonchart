@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -34,7 +35,9 @@ def set_default_palette():
         current_palette.append(current_palette.pop(1))
         sns.set_palette(current_palette)
 
-def get_zscores(returns):
+def get_zscores(
+    returns: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
     """
     Returns the Z-scores of the input returns.
 
@@ -52,7 +55,10 @@ def get_zscores(returns):
     z_scores = (nonzero_returns - nonzero_returns.mean())/nonzero_returns.std()
     return z_scores
 
-def trim_outliers(returns, z_score):
+def trim_outliers(
+    returns: Union[pd.Series, pd.DataFrame],
+    z_score: float
+    ) -> Union[pd.Series, pd.DataFrame]:
     """
     Zeroes out observations that are too many standard deviations from the
     mean.
@@ -144,7 +150,10 @@ def _get_sharpe(returns, riskfree=0):
     # Returns are assumed to represent daily returns, so annualize the Sharpe ratio
     return mean/std * np.sqrt(252)
 
-def get_sharpe(returns, riskfree=0):
+def get_sharpe(
+    returns: Union[pd.Series, pd.DataFrame],
+    riskfree: float = 0
+    ) -> Union[float, pd.Series]:
     """
     Returns the Sharpe ratio of the returns.
 
@@ -163,7 +172,11 @@ def get_sharpe(returns, riskfree=0):
     returns = _pad_returns(returns)
     return _get_sharpe(returns)
 
-def get_rolling_sharpe(returns, window, riskfree=0):
+def get_rolling_sharpe(
+    returns: Union[pd.Series, pd.DataFrame],
+    window: int,
+    riskfree: float = 0
+    ) -> Union[pd.Series, pd.DataFrame]:
     """
     Computes rolling Sharpe ratios for the returns.
 
@@ -193,7 +206,10 @@ def get_rolling_sharpe(returns, window, riskfree=0):
         else:
             raise
 
-def get_cum_returns(returns, compound=True):
+def get_cum_returns(
+    returns: Union[pd.Series, pd.DataFrame],
+    compound: bool = True
+    ) -> Union[pd.Series, pd.DataFrame]:
     """
     Computes the cumulative returns of the provided returns.
 
@@ -218,7 +234,10 @@ def get_cum_returns(returns, compound=True):
     cum_returns.index.name = "Date"
     return cum_returns
 
-def get_cagr(cum_returns, compound=True):
+def get_cagr(
+    cum_returns: Union[pd.Series, pd.DataFrame],
+    compound: bool = True
+    ) -> Union[float, pd.Series]:
     """
     Computes the CAGR from the cumulative returns.
 
@@ -263,7 +282,9 @@ def get_cagr(cum_returns, compound=True):
 
     return cagr
 
-def get_drawdowns(cum_returns):
+def get_drawdowns(
+    cum_returns: Union[pd.Series, pd.DataFrame]
+    ) -> Union[pd.Series, pd.DataFrame]:
     """
     Computes the drawdowns of the cumulative returns.
 
@@ -281,7 +302,10 @@ def get_drawdowns(cum_returns):
     drawdowns = cum_returns/highwater_marks - 1
     return drawdowns
 
-def get_top_movers(returns, n=10):
+def get_top_movers(
+    returns: Union[pd.Series, pd.DataFrame],
+    n: int = 10
+    ) -> Union[pd.Series, pd.DataFrame]:
     """
     Returns the biggest gainers and losers in the returns.
 
@@ -311,7 +335,10 @@ def get_top_movers(returns, n=10):
 
     return top_movers
 
-def intraday_to_daily(results, how=None):
+def intraday_to_daily(
+    results: pd.DataFrame,
+    how: dict[str, str] = None
+    ) -> pd.DataFrame:
     """
     Roll up a DataFrame of intraday performance results to daily, dropping
     the "Time" level from the multi-index.

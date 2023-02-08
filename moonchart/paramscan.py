@@ -14,6 +14,7 @@
 
 import pandas as pd
 import seaborn as sns
+from typing import Union, TextIO
 from collections import OrderedDict
 import matplotlib
 import matplotlib.pyplot as plt
@@ -23,6 +24,15 @@ from .base import BaseTearsheet
 from .exceptions import MoonchartError
 
 class ParamscanTearsheet(BaseTearsheet):
+    """
+    Create a tear sheet from a parameter scan results CSV from Moonshot or
+    Zipline.
+
+    See Also
+    --------
+    ParamscanTearsheet.from_csv : Create a tear sheet from a parameter scan
+        results CSV from Moonshot or Zipline.
+    """
 
     def _from_df(self, results):
         """
@@ -52,7 +62,12 @@ class ParamscanTearsheet(BaseTearsheet):
         return self.create_full_tearsheet(results)
 
     @classmethod
-    def from_csv(cls, filepath_or_buffer, figsize=None, pdf_filename=None):
+    def from_csv(
+        cls,
+        filepath_or_buffer: Union[str, TextIO],
+        figsize: tuple[int, int] = None,
+        pdf_filename: str = None
+        ) -> None:
         """
         Create a tear sheet from a parameter scan results CSV from Moonshot or
         Zipline.
@@ -82,7 +97,12 @@ class ParamscanTearsheet(BaseTearsheet):
         return t._from_df(results)
 
     @classmethod
-    def from_moonshot_csv(cls, *args, **kwargs):
+    def from_moonshot_csv(
+        cls,
+        filepath_or_buffer: Union[str, TextIO],
+        figsize: tuple[int, int] = None,
+        pdf_filename: str = None
+        ) -> None:
         """
         Create a tear sheet from a parameter scan results CSV from Moonshot or
         Zipline.
@@ -90,9 +110,16 @@ class ParamscanTearsheet(BaseTearsheet):
         This method is an alias for ParamscanTearsheet.from_csv. Please see its
         docstring for more information.
         """
-        return cls.from_csv(*args, **kwargs)
+        return cls.from_csv(
+            filepath_or_buffer,
+            figsize=figsize,
+            pdf_filename=pdf_filename)
 
-    def create_full_tearsheet(self, results, heatmap_2d=True):
+    def create_full_tearsheet(
+        self,
+        results: pd.DataFrame,
+        heatmap_2d: bool = True
+        ) -> None:
         """
         Create a full tear sheet of param scan results.
 

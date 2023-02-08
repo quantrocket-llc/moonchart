@@ -40,7 +40,12 @@ class BaseTearsheet(object):
         (i.e. strategies or securities). Too many plots may cause slow
         rendering. Default 25.
     """
-    def __init__(self, pdf_filename=None, figsize=None, max_cols_for_details=25):
+    def __init__(
+        self,
+        pdf_filename: str = None,
+        figsize: tuple[int, int] = None,
+        max_cols_for_details: int = 25
+        ):
         self.figsize = figsize or (16.0, 12.0) # width, height in inches
         plt.rc("axes", axisbelow=True)
         if pdf_filename:

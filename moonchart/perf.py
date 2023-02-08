@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union, TextIO
 import numpy as np
 import pandas as pd
 from .exceptions import InsufficientData, MoonchartError
@@ -81,20 +82,20 @@ class DailyPerformance(object):
 
     def __init__(
         self,
-        returns,
-        pnl=None,
-        net_exposures=None,
-        abs_exposures=None,
-        total_holdings=None,
-        turnover=None,
-        commission_amounts=None,
-        commissions=None,
-        slippages=None,
-        benchmark=None,
-        riskfree=0,
-        compound=True,
-        rolling_sharpe_window=200,
-        trim_outliers=None
+        returns: pd.DataFrame,
+        pnl: pd.DataFrame = None,
+        net_exposures: pd.DataFrame = None,
+        abs_exposures: pd.DataFrame = None,
+        total_holdings: pd.DataFrame = None,
+        turnover: pd.DataFrame = None,
+        commission_amounts: pd.DataFrame = None,
+        commissions: pd.DataFrame = None,
+        slippages: pd.DataFrame = None,
+        benchmark: pd.Series = None,
+        riskfree: float = 0,
+        compound: bool = True,
+        rolling_sharpe_window: int = 200,
+        trim_outliers: float = None
         ):
 
         self.returns = returns
@@ -194,14 +195,17 @@ class DailyPerformance(object):
         return cls(**kwargs)
 
     @classmethod
-    def from_moonshot_csv(cls, filepath_or_buffer,
-                          start_date=None,
-                          end_date=None,
-                          trim_outliers=None,
-                          how_to_aggregate=None,
-                          riskfree=0,
-                          compound=True,
-                          rolling_sharpe_window=200):
+    def from_moonshot_csv(
+        cls,
+        filepath_or_buffer: Union[str, TextIO],
+        start_date: str = None,
+        end_date: str = None,
+        trim_outliers: float = None,
+        how_to_aggregate: dict[str, str] = None,
+        riskfree: float = 0,
+        compound: bool = True,
+        rolling_sharpe_window: int = 200
+        ) -> 'DailyPerformance':
         """
         Creates a DailyPerformance instance from a Moonshot backtest results CSV.
 
@@ -270,14 +274,17 @@ class DailyPerformance(object):
             rolling_sharpe_window=rolling_sharpe_window)
 
     @classmethod
-    def from_pnl_csv(cls, filepath_or_buffer,
-                     start_date=None,
-                     end_date=None,
-                     trim_outliers=None,
-                     how_to_aggregate=None,
-                     riskfree=0,
-                     compound=True,
-                     rolling_sharpe_window=200):
+    def from_pnl_csv(
+        cls,
+        filepath_or_buffer: Union[str, TextIO],
+        start_date: str = None,
+        end_date: str = None,
+        trim_outliers: float = None,
+        how_to_aggregate: dict[str, str] = None,
+        riskfree: float = 0,
+        compound: bool = True,
+        rolling_sharpe_window: int = 200
+        ) -> 'DailyPerformance':
         """
         Creates a DailyPerformance instance from a PNL CSV.
 
@@ -485,10 +492,14 @@ class AggregateDailyPerformance(DailyPerformance):
     >>> agg_perf.cum_returns.plot()
     """
 
-    def __init__(self, performance, riskfree=None,
-                 compound=None,
-                 rolling_sharpe_window=None,
-                 trim_outliers=None):
+    def __init__(
+        self,
+        performance: DailyPerformance,
+        riskfree: float = None,
+        compound: bool = None,
+        rolling_sharpe_window: int = None,
+        trim_outliers: float = None
+        ):
 
         if riskfree is None:
             riskfree = performance.riskfree

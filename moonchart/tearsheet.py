@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union, TextIO
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -37,12 +38,20 @@ class Tearsheet(BaseTearsheet):
     Generates a tear sheet of performance stats and graphs.
     """
     @classmethod
-    def from_moonshot_csv(cls, filepath_or_buffer, figsize=None,
-                          max_cols_for_details=25, trim_outliers=None,
-                          how_to_aggregate=None,
-                          pdf_filename=None, riskfree=0,
-                          start_date=None, end_date=None,
-                          compound=True, rolling_sharpe_window=200):
+    def from_moonshot_csv(
+        cls,
+        filepath_or_buffer: Union[str, TextIO],
+        figsize: tuple[int, int] = None,
+        max_cols_for_details: int = 25,
+        trim_outliers: float = None,
+        how_to_aggregate: dict[str, str] = None,
+        pdf_filename: str = None,
+        riskfree: float = 0,
+        start_date: str = None,
+        end_date: str = None,
+        compound: bool = True,
+        rolling_sharpe_window: int = 200
+        ) -> None:
         """
         Create a full tear sheet from a moonshot backtest results CSV.
 
@@ -114,12 +123,20 @@ class Tearsheet(BaseTearsheet):
         return t.create_full_tearsheet(perf)
 
     @classmethod
-    def from_pnl_csv(cls, filepath_or_buffer, figsize=None,
-                     max_cols_for_details=25, trim_outliers=None,
-                     how_to_aggregate=None,
-                     pdf_filename=None, riskfree=0,
-                     start_date=None, end_date=None,
-                     compound=True, rolling_sharpe_window=200):
+    def from_pnl_csv(
+        cls,
+        filepath_or_buffer: Union[str, TextIO],
+        figsize: tuple[int, int] = None,
+        max_cols_for_details: int = 25,
+        trim_outliers: float = None,
+        how_to_aggregate: dict[str, str] = None,
+        pdf_filename: str = None,
+        riskfree: float = 0,
+        start_date: str = None,
+        end_date: str = None,
+        compound: bool = True,
+        rolling_sharpe_window: int = 200
+        ) -> None:
         """
         Create a full tear sheet from a pnl CSV.
 
@@ -184,7 +201,7 @@ class Tearsheet(BaseTearsheet):
 
         return t.create_full_tearsheet(perf)
 
-    def create_full_tearsheet(self, performance):
+    def create_full_tearsheet(self, performance: DailyPerformance) -> None:
         """
         Create a full tear sheet of performance results including returns
         plots, returns by year plots, and position-related plots.
@@ -230,7 +247,11 @@ class Tearsheet(BaseTearsheet):
 
         self._save_or_show()
 
-    def create_summary_tearsheet(self, performance, agg_performance=None):
+    def create_summary_tearsheet(
+        self,
+        performance: DailyPerformance,
+        agg_performance: AggregateDailyPerformance = None
+        ) -> None:
         """
         Create a tear sheet of summary performance stats in a table.
 
@@ -395,7 +416,11 @@ class Tearsheet(BaseTearsheet):
             table.scale(2, 2)
             table.set_fontsize("large")
 
-    def create_returns_tearsheet(self, performance, agg_performance=None):
+    def create_returns_tearsheet(
+        self,
+        performance: DailyPerformance,
+        agg_performance: AggregateDailyPerformance = None
+        ) -> None:
         """
         Create a tear sheet of returns-related plots.
 
@@ -500,7 +525,11 @@ class Tearsheet(BaseTearsheet):
             pnl.plot(
                 ax=axis, kind="bar", title="PNL (Details)")
 
-    def create_positions_tearsheet(self, performance, agg_performance=None):
+    def create_positions_tearsheet(
+        self,
+        performance: DailyPerformance,
+        agg_performance: AggregateDailyPerformance = None
+        ) -> None:
         """
         Create a tear sheet of position-related plots.
 
@@ -668,7 +697,11 @@ class Tearsheet(BaseTearsheet):
 
         fig.tight_layout()
 
-    def create_returns_by_year_tearsheet(self, performance, agg_performance=None):
+    def create_returns_by_year_tearsheet(
+        self,
+        performance: DailyPerformance,
+        agg_performance: AggregateDailyPerformance = None
+        ) -> None:
         """
         Plots bar charts showing CAGR and Sharpe by year.
 
@@ -755,7 +788,12 @@ class Tearsheet(BaseTearsheet):
 
         fig.tight_layout()
 
-    def create_montecarlo_tearsheet(self, performance, cycles=5, aggregate_before_shuffle=True):
+    def create_montecarlo_tearsheet(
+        self,
+        performance: DailyPerformance,
+        cycles: int = 5,
+        aggregate_before_shuffle: bool = True
+        ) -> None:
         """
         Run a Montecarlo simulation by shuffling the DataFrame of returns a specified
         number of times and plotting the shuffled returns against the original returns.

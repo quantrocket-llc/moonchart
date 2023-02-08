@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union, TextIO
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
@@ -42,16 +43,23 @@ class ShortfallTearsheet(BaseTearsheet):
         self.x_label, self.y_label = labels
 
     @classmethod
-    def from_csvs(cls, x_filepath_or_buffer, y_filepath_or_buffer,
-                  labels=("simulated", "actual"),
-                  start_date=None,
-                  end_date=None,
-                  largest_n=None,
-                  shift_x_positions=0,
-                  figsize=None, trim_outliers=None,
-                  how_to_aggregate=None,
-                  pdf_filename=None, riskfree=0,
-                  compound=True, rolling_sharpe_window=200):
+    def from_csvs(
+        cls,
+        x_filepath_or_buffer: Union[str, TextIO],
+        y_filepath_or_buffer: Union[str, TextIO],
+        labels: tuple[str, str] = ("simulated", "actual"),
+        start_date: str = None,
+        end_date: str = None,
+        largest_n: int = None,
+        shift_x_positions: int = 0,
+        figsize: tuple[int, int] = None,
+        trim_outliers: float = None,
+        how_to_aggregate: dict[str, str] = None,
+        pdf_filename: str = None,
+        riskfree: float = 0,
+        compound: bool = True,
+        rolling_sharpe_window: int = 200
+        ) -> Union[pd.DataFrame, None]:
         """
         Create a shortfall tear sheet comparing simulated results (or other benchmark results)
         with actual results.
@@ -149,8 +157,13 @@ class ShortfallTearsheet(BaseTearsheet):
         return t.create_full_tearsheet(x_perf, y_perf, largest_n=largest_n,
                                        shift_x_positions=shift_x_positions)
 
-    def create_full_tearsheet(self, x_performance, y_performance, largest_n=None,
-                              shift_x_positions=0):
+    def create_full_tearsheet(
+        self,
+        x_performance: DailyPerformance,
+        y_performance: DailyPerformance,
+        largest_n: int = None,
+        shift_x_positions: int = 0
+        ) -> Union[pd.DataFrame, None]:
         """
         Create a shortfall tear sheet comparing simulated results (or other
         benchmark results) with actual results.
@@ -262,7 +275,12 @@ class ShortfallTearsheet(BaseTearsheet):
 
         return largest_shortfalls
 
-    def create_largest_shortfalls_tearsheet(self, x_performance, y_performance, largest_n=5):
+    def create_largest_shortfalls_tearsheet(
+        self,
+        x_performance: DailyPerformance,
+        y_performance: DailyPerformance,
+        largest_n: int = 5
+        ) -> pd.DataFrame:
         """
         Create a "largest shortfalls" table highligting the dates and
         specific instruments or strategies (depending on whether the columns
@@ -412,7 +430,11 @@ class ShortfallTearsheet(BaseTearsheet):
         results.plot(ax=axis, title="Daily " + fig_title)
         axis.set_xlabel("")
 
-    def create_summary_tearsheet(self, x_performance, y_performance):
+    def create_summary_tearsheet(
+        self,
+        x_performance: DailyPerformance,
+        y_performance: DailyPerformance
+        ) -> None:
         """
         Create a tear sheet of summary shortfall stats in a table.
 
