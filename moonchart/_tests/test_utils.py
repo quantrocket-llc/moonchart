@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# To run: pytest path/to/moonchart/tests -v
+# To run: pytest path/to/moonchart/_tests -v
 
 import unittest
 import os

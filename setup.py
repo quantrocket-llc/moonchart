@@ -25,6 +25,7 @@ setup(name='quantrocket-moonchart',
     author_email='support@quantrocket.com',
     license='Apache-2.0',
     packages=find_packages(),
+    package_data={"moonchart": ["py.typed"]},
     install_requires=[
         "matplotlib",
         "pandas>=0.20",

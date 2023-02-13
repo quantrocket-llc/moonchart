@@ -18,6 +18,19 @@ import pandas as pd
 import numpy as np
 from .exceptions import MoonchartError
 
+__all__ = [
+    "get_sharpe",
+    "get_rolling_sharpe",
+    "get_cum_returns",
+    "get_zscores",
+    "get_cagr",
+    "get_drawdowns",
+    "get_top_movers",
+    "intraday_to_daily",
+    "trim_outliers",
+    "with_baseline",
+]
+
 def set_default_palette():
     """
     Sets the default palette so that the first 3 colors are
