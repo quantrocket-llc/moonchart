@@ -91,14 +91,15 @@ class DailyPerformance(object):
         commission_amounts: pd.DataFrame = None,
         commissions: pd.DataFrame = None,
         slippages: pd.DataFrame = None,
-        benchmark: pd.Series = None,
+        benchmark: 'pd.Series[float]' = None,
         riskfree: float = 0,
         compound: bool = True,
         rolling_sharpe_window: int = 200,
         trim_outliers: float = None
         ):
 
-        self.returns = returns
+        self.returns: pd.DataFrame = returns
+        """a DataFrame of pct returns"""
         if len(self.returns.index) < 2:
             raise InsufficientData(
                 "Moonchart needs at least 2 dates to analyze performance, "
@@ -117,17 +118,28 @@ class DailyPerformance(object):
                 warnings.warn("Found returns which are {0} standard deviations from the "
                               "mean, consider removing them with the `trim_outliers` parameter".format(
                                   round(max_zscore)))
-        self.pnl = pnl
-        self.net_exposures = net_exposures
-        self.abs_exposures = abs_exposures
-        self.total_holdings = total_holdings
-        self.turnover = turnover
-        self.commission_amounts = commission_amounts
-        self.commissions = commissions
-        self.slippages = slippages
-        self.riskfree = riskfree
-        self.compound = compound
-        self.rolling_sharpe_window = rolling_sharpe_window
+        self.pnl: pd.DataFrame = pnl
+        """a DataFrame of pnl"""
+        self.net_exposures: pd.DataFrame = net_exposures
+        """a DataFrame of net (hedged) exposure"""
+        self.abs_exposures: pd.DataFrame = abs_exposures
+        """a DataFrame of absolute exposure (ignoring hedging)"""
+        self.total_holdings: pd.DataFrame = total_holdings
+        """a DataFrame of the number of holdings"""
+        self.turnover: pd.DataFrame = turnover
+        """a DataFrame of turnover, that is, changes to positions"""
+        self.commission_amounts: pd.DataFrame = commission_amounts
+        """a DataFrame of commission amounts, in the base currency"""
+        self.commissions: pd.DataFrame = commissions
+        """a DataFrame of commissions, as a proportion of capital"""
+        self.slippages: pd.DataFrame = slippages
+        """a DataFrame of slippages, as a proportion of capital"""
+        self.riskfree: float = riskfree
+        """the riskfree rate"""
+        self.compound: bool = compound
+        """True for compound/geometric returns, False for arithmetic returns"""
+        self.rolling_sharpe_window: int = rolling_sharpe_window
+        """compute rolling Sharpe over this many periods"""
         self._benchmark_prices = benchmark
         self._benchmark_returns = None
         self._benchmark_cum_returns = None
@@ -340,7 +352,8 @@ class DailyPerformance(object):
             rolling_sharpe_window=rolling_sharpe_window)
 
     @property
-    def cum_returns(self):
+    def cum_returns(self) -> pd.DataFrame:
+        """a DataFrame of cumulative returns"""
 
         if self._cum_returns is None:
             self._cum_returns = get_cum_returns(self.returns, compound=self.compound)
@@ -348,7 +361,8 @@ class DailyPerformance(object):
         return self._cum_returns
 
     @property
-    def cum_commissions(self):
+    def cum_commissions(self) -> pd.DataFrame:
+        """a DataFrame of cumulative commissions, as a proportion of capital"""
 
         if self._cum_commissions is None and self.commissions is not None:
             self._cum_commissions = get_cum_returns(self.commissions, compound=False)
@@ -356,7 +370,8 @@ class DailyPerformance(object):
         return self._cum_commissions
 
     @property
-    def cum_commission_amounts(self):
+    def cum_commission_amounts(self) -> pd.DataFrame:
+        """a DataFrame of cumulative commission amounts, in the base currency"""
 
         if self._cum_commission_amounts is None and self.commission_amounts is not None:
             self._cum_commission_amounts = self.commission_amounts.cumsum()
@@ -364,7 +379,8 @@ class DailyPerformance(object):
         return self._cum_commission_amounts
 
     @property
-    def cum_slippages(self):
+    def cum_slippages(self) -> pd.DataFrame:
+        """a DataFrame of cumulative slippages, as a proportion of capital"""
 
         if self._cum_slippages is None and self.slippages is not None:
             self._cum_slippages = get_cum_returns(self.slippages, compound=False)
@@ -372,21 +388,24 @@ class DailyPerformance(object):
         return self._cum_slippages
 
     @property
-    def cagr(self):
+    def cagr(self) -> 'pd.Series[float]':
+        """a Series of CAGR values"""
         if self._cagr is None:
             self._cagr = get_cagr(self.cum_returns, compound=self.compound)
 
         return self._cagr
 
     @property
-    def sharpe(self):
+    def sharpe(self) -> 'pd.Series[float]':
+        """a Series of Sharpe ratios"""
         if self._sharpe is None:
             self._sharpe = get_sharpe(self.returns, riskfree=self.riskfree)
 
         return self._sharpe
 
     @property
-    def rolling_sharpe(self):
+    def rolling_sharpe(self) -> pd.DataFrame:
+        """a DataFrame of rolling Sharpe ratios"""
         if self._rolling_sharpe is None:
             self._rolling_sharpe = get_rolling_sharpe(
                 self.returns,
@@ -396,25 +415,28 @@ class DailyPerformance(object):
         return self._rolling_sharpe
 
     @property
-    def drawdowns(self):
+    def drawdowns(self) -> pd.DataFrame:
+        """a DataFrame of drawdowns"""
         if self._drawdowns is None:
             self._drawdowns = get_drawdowns(self.cum_returns)
 
         return self._drawdowns
 
     @property
-    def max_drawdown(self):
+    def max_drawdown(self) -> float:
+        """the maximum drawdown"""
         return self.drawdowns.min()
 
     @property
-    def cum_pnl(self):
+    def cum_pnl(self) -> pd.DataFrame:
+        """a DataFrame of cumulative PNL"""
         if self._cum_pnl is None and self.pnl is not None:
             self._cum_pnl = self.pnl.cumsum()
 
         return self._cum_pnl
 
     @property
-    def benchmark_returns(self):
+    def benchmark_returns(self) -> 'pd.Series[float]':
         """
         Returns a Series of benchmark returns from the DataFrame of benchmark
         prices, if any. If more than one strategy/column has benchmark
@@ -444,7 +466,8 @@ class DailyPerformance(object):
         return self._benchmark_returns
 
     @property
-    def benchmark_cum_returns(self):
+    def benchmark_cum_returns(self) -> 'pd.Series[float]':
+        """Cumulative benchmark returns"""
 
         if self._benchmark_cum_returns is None and self._benchmark_returns is not None:
             self._benchmark_cum_returns = get_cum_returns(self._benchmark_returns, compound=True)
@@ -519,25 +542,33 @@ class AggregateDailyPerformance(DailyPerformance):
             trim_outliers=trim_outliers
         )
         if performance.pnl is not None:
-            self.pnl = performance.pnl.sum(axis=1)
+            self.pnl: 'pd.Series[float]' = performance.pnl.sum(axis=1)
+            """a Series of aggregate PNL"""
 
         if performance.commission_amounts is not None:
-            self.commission_amounts = performance.commission_amounts.sum(axis=1)
+            self.commission_amounts: 'pd.Series[float]' = performance.commission_amounts.sum(axis=1)
+            """a Series of aggregate commission amounts, in the base currency"""
 
         if performance.commissions is not None:
-            self.commissions = performance.commissions.sum(axis=1)
+            self.commissions: 'pd.Series[float]' = performance.commissions.sum(axis=1)
+            """a Series of aggregate commissions, as a proportion of capital"""
 
         if performance.slippages is not None:
-            self.slippages = performance.slippages.sum(axis=1)
+            self.slippages: 'pd.Series[float]' = performance.slippages.sum(axis=1)
+            """a Series of aggregate slippages, as a proportion of capital"""
 
         if performance.net_exposures is not None:
-            self.net_exposures = performance.net_exposures.sum(axis=1)
+            self.net_exposures: 'pd.Series[float]' = performance.net_exposures.sum(axis=1)
+            """a Series of aggregate net exposures"""
 
         if performance.abs_exposures is not None:
-            self.abs_exposures = performance.abs_exposures.sum(axis=1)
+            self.abs_exposures: 'pd.Series[float]' = performance.abs_exposures.sum(axis=1)
+            """a Series of aggregate absolute exposures"""
 
         if performance.total_holdings is not None:
-            self.total_holdings = performance.total_holdings.sum(axis=1)
+            self.total_holdings: 'pd.Series[float]' = performance.total_holdings.sum(axis=1)
+            """a Series of aggregate total holdings"""
 
         if performance.turnover is not None:
-            self.turnover = performance.turnover.sum(axis=1)
+            self.turnover: 'pd.Series[float]' = performance.turnover.sum(axis=1)
+            """a Series of aggregate turnover"""
