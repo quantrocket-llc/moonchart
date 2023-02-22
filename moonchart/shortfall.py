@@ -27,7 +27,7 @@ from .utils import with_baseline, get_cum_returns, get_drawdowns
 
 class ShortfallTearsheet(BaseTearsheet):
     """
-    Generate a tear sheet of performance stats and plots highlighting the
+    Create a tear sheet of performance stats and plots highlighting the
     shortfall between simulated or benchmark results and actual results.
 
     See Also

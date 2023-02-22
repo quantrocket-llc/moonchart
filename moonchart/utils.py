@@ -11,7 +11,44 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Utility functions for performance analysis.
 
+Functions
+---------
+get_sharpe
+    Return the Sharpe ratio of the returns.
+
+get_rolling_sharpe
+    Compute rolling Sharpe ratios for the returns.
+
+get_cum_returns
+    Compute the cumulative returns of the provided returns.
+
+get_zscores
+    Return the Z-scores of the input returns.
+
+get_cagr
+    Compute the CAGR from the cumulative returns.
+
+get_drawdowns
+    Compute the drawdowns of the cumulative returns.
+
+get_top_movers
+    Return the biggest gainers and losers in the returns.
+
+intraday_to_daily
+    Roll up a DataFrame of intraday performance results to daily, dropping
+    the "Time" level from the multi-index.
+
+trim_outliers
+    Zero out observations that are too many standard deviations from the
+    mean.
+
+with_baseline
+    Prepend a date-indexed Series or DataFrame with an initial row that is
+    one period earlier than the first row and has the specified value.
+"""
 from typing import overload
 import seaborn as sns
 import pandas as pd
@@ -59,7 +96,7 @@ def get_zscores(
     returns: pd.DataFrame
     ) -> pd.DataFrame:
     """
-    Returns the Z-scores of the input returns.
+    Return the Z-scores of the input returns.
 
     Parameters
     ----------
@@ -88,7 +125,7 @@ def trim_outliers(
     z_score: float
     ) -> pd.DataFrame:
     """
-    Zeroes out observations that are too many standard deviations from the
+    Zero out observations that are too many standard deviations from the
     mean.
 
     Parameters
@@ -108,7 +145,7 @@ def trim_outliers(
 
 def with_baseline(data, value=1):
     """
-    Prepends a date-indexed Series or DataFrame with an initial row that is
+    Prepend a date-indexed Series or DataFrame with an initial row that is
     one period earlier than the first row and has the specified value.
 
     The typical use case is for generating plots: without a baseline row, a cumulative
@@ -191,7 +228,7 @@ def get_sharpe(
     riskfree: float = 0
     ) -> 'pd.Series[float]':
     """
-    Returns the Sharpe ratio of the returns.
+    Return the Sharpe ratio of the returns.
 
     Parameters
     ----------
@@ -223,7 +260,7 @@ def get_rolling_sharpe(
     riskfree: float = 0
     ) -> pd.DataFrame:
     """
-    Computes rolling Sharpe ratios for the returns.
+    Compute rolling Sharpe ratios for the returns.
 
     Parameters
     ----------
@@ -264,7 +301,7 @@ def get_cum_returns(
     compound: bool = True
     ) -> pd.DataFrame:
     """
-    Computes the cumulative returns of the provided returns.
+    Compute the cumulative returns of the provided returns.
 
     Parameters
     ----------
@@ -300,7 +337,7 @@ def get_cagr(
     compound: bool = True
     ) -> 'pd.Series[float]':
     """
-    Computes the CAGR from the cumulative returns.
+    Compute the CAGR from the cumulative returns.
 
     Parameters
     ----------
@@ -354,7 +391,7 @@ def get_drawdowns(
     cum_returns: pd.DataFrame
     ) -> pd.DataFrame:
     """
-    Computes the drawdowns of the cumulative returns.
+    Compute the drawdowns of the cumulative returns.
 
     Parameters
     ----------
@@ -383,7 +420,7 @@ def get_top_movers(
     n: int = 10
     ) -> pd.DataFrame:
     """
-    Returns the biggest gainers and losers in the returns.
+    Return the biggest gainers and losers in the returns.
 
     Parameters
     ----------

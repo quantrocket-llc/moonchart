@@ -35,7 +35,14 @@ from .utils import (
 
 class Tearsheet(BaseTearsheet):
     """
-    Generates a tear sheet of performance stats and graphs.
+    Create a tear sheet of performance stats and graphs for backtest
+    results or live PNL.
+
+    See Also
+    --------
+    Tearsheet.from_moonshot_csv : Create a full tear sheet from a moonshot backtest results CSV.
+
+    Tearsheet.from_pnl_csv : Create a full tear sheet from a PNL CSV.
     """
     @classmethod
     def from_moonshot_csv(
