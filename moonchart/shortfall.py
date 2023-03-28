@@ -33,6 +33,12 @@ class ShortfallTearsheet(BaseTearsheet):
     See Also
     --------
     ShortfallTearsheet.from_csvs : Create a shortfall tear sheet from CSVs.
+
+    Notes
+    -----
+    Usage Guide:
+
+    * Implementation Shortfall: https://qrok.it/dl/mc/shortfall
     """
 
     def __init__(self,
@@ -149,6 +155,12 @@ class ShortfallTearsheet(BaseTearsheet):
         DataFrame or None
             DataFrame of largest shortfalls if largest_n is not None, otherwise None
 
+        Notes
+        -----
+        Usage Guide:
+
+        * Implementation Shortfall: https://qrok.it/dl/mc/shortfall
+
         Examples
         --------
         >>> from moonchart import ShortfallTearsheet
@@ -231,6 +243,12 @@ class ShortfallTearsheet(BaseTearsheet):
         See Also
         --------
         ShortfallTearsheet.from_csvs : Create a shortfall tear sheet from CSVs.
+
+        Notes
+        -----
+        Usage Guide:
+
+        * Implementation Shortfall: https://qrok.it/dl/mc/shortfall
         """
 
         y_agg_performance = AggregateDailyPerformance(y_performance)

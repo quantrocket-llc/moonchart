@@ -43,6 +43,13 @@ class Tearsheet(BaseTearsheet):
     Tearsheet.from_moonshot_csv : Create a full tear sheet from a moonshot backtest results CSV.
 
     Tearsheet.from_pnl_csv : Create a full tear sheet from a PNL CSV.
+
+    Notes
+    -----
+    Usage Guide:
+
+    * Moonshot backtesting: https://qrok.it/dl/mc/moonshot-backtest
+    * Performance tracking: https://qrok.it/dl/mc/performance
     """
     @classmethod
     def from_moonshot_csv(
@@ -107,6 +114,12 @@ class Tearsheet(BaseTearsheet):
         Returns
         -------
         None
+
+        Notes
+        -----
+        Usage Guide:
+
+        * Moonshot backtesting: https://qrok.it/dl/mc/moonshot-backtest
 
         Examples
         --------
@@ -191,6 +204,12 @@ class Tearsheet(BaseTearsheet):
         Returns
         -------
         None
+
+        Notes
+        -----
+        Usage Guide:
+
+        * Performance tracking: https://qrok.it/dl/mc/performance
         """
         perf = DailyPerformance.from_pnl_csv(
             filepath_or_buffer,

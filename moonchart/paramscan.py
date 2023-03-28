@@ -32,6 +32,13 @@ class ParamscanTearsheet(BaseTearsheet):
     --------
     ParamscanTearsheet.from_csv : Create a tear sheet from a parameter scan
         results CSV from Moonshot or Zipline.
+
+    Notes
+    -----
+    Usage Guide:
+
+    * Moonshot parameter scans: https://qrok.it/dl/mc/moonshot-paramscan
+    * Zipline parameter scans: https://qrok.it/dl/mc/zipline-paramscan
     """
 
     def _from_df(self, results):
@@ -87,6 +94,13 @@ class ParamscanTearsheet(BaseTearsheet):
         -------
         None
 
+        Notes
+        -----
+        Usage Guide:
+
+        * Moonshot parameter scans: https://qrok.it/dl/mc/moonshot-paramscan
+        * Zipline parameter scans: https://qrok.it/dl/mc/zipline-paramscan
+
         Examples
         --------
         >>> from moonchart import ParamscanTearsheet
@@ -135,6 +149,13 @@ class ParamscanTearsheet(BaseTearsheet):
         Returns
         -------
         None
+
+        Notes
+        -----
+        Usage Guide:
+
+        * Moonshot parameter scans: https://qrok.it/dl/mc/moonshot-paramscan
+        * Zipline parameter scans: https://qrok.it/dl/mc/zipline-paramscan
         """
         returns = results.loc["AggReturn"]
         returns.index = pd.to_datetime(returns.index)
