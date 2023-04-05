@@ -88,6 +88,25 @@ class ShortfallTearsheet(BaseTearsheet):
         compound: bool = True,
         rolling_sharpe_window: int = 200
         ) -> pd.DataFrame:
+        pass
+
+    @classmethod
+    def from_csvs(
+        cls,
+        x_filepath_or_buffer,
+        y_filepath_or_buffer,
+        labels=("simulated", "actual"),
+        start_date=None,
+        end_date=None,
+        largest_n=None,
+        shift_x_positions=0,
+        figsize=None,
+        trim_outliers=None,
+        how_to_aggregate=None,
+        pdf_filename=None,
+        riskfree=0,
+        compound=True,
+        rolling_sharpe_window=200):
         """
         Create a shortfall tear sheet comparing simulated results (or other benchmark results)
         with actual results.
@@ -209,6 +228,14 @@ class ShortfallTearsheet(BaseTearsheet):
         largest_n: int = None,
         shift_x_positions: int = 0
         ) -> pd.DataFrame:
+        pass
+
+    def create_full_tearsheet(
+        self,
+        x_performance,
+        y_performance,
+        largest_n=None,
+        shift_x_positions=0):
         """
         Create a shortfall tear sheet comparing simulated results (or other
         benchmark results) with actual results.

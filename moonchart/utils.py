@@ -95,6 +95,9 @@ def get_zscores(
 def get_zscores(
     returns: pd.DataFrame
     ) -> pd.DataFrame:
+    pass
+
+def get_zscores(returns):
     """
     Return the Z-scores of the input returns.
 
@@ -124,6 +127,9 @@ def trim_outliers(
     returns: pd.DataFrame,
     z_score: float
     ) -> pd.DataFrame:
+    pass
+
+def trim_outliers(returns, z_score):
     """
     Zero out observations that are too many standard deviations from the
     mean.
@@ -227,6 +233,9 @@ def get_sharpe(
     returns: pd.DataFrame,
     riskfree: float = 0
     ) -> 'pd.Series[float]':
+    pass
+
+def get_sharpe(returns, riskfree=0):
     """
     Return the Sharpe ratio of the returns.
 
@@ -259,6 +268,9 @@ def get_rolling_sharpe(
     window: int,
     riskfree: float = 0
     ) -> pd.DataFrame:
+    pass
+
+def get_rolling_sharpe(returns, window, riskfree=0):
     """
     Compute rolling Sharpe ratios for the returns.
 
@@ -300,6 +312,9 @@ def get_cum_returns(
     returns: pd.DataFrame,
     compound: bool = True
     ) -> pd.DataFrame:
+    pass
+
+def get_cum_returns(returns, compound=True):
     """
     Compute the cumulative returns of the provided returns.
 
@@ -336,6 +351,9 @@ def get_cagr(
     cum_returns: pd.DataFrame,
     compound: bool = True
     ) -> 'pd.Series[float]':
+    pass
+
+def get_cagr(cum_returns, compound=True):
     """
     Compute the CAGR from the cumulative returns.
 
@@ -390,6 +408,9 @@ def get_drawdowns(
 def get_drawdowns(
     cum_returns: pd.DataFrame
     ) -> pd.DataFrame:
+    pass
+
+def get_drawdowns(cum_returns):
     """
     Compute the drawdowns of the cumulative returns.
 
@@ -419,6 +440,9 @@ def get_top_movers(
     returns: pd.DataFrame,
     n: int = 10
     ) -> pd.DataFrame:
+    pass
+
+def get_top_movers(returns, n=10):
     """
     Return the biggest gainers and losers in the returns.
 
