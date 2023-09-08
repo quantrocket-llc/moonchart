@@ -688,7 +688,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
         daily_results = intraday_to_daily(intraday_results)
 
         daily_results = daily_results.reset_index()
-        daily_results.loc[:, "Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
+        daily_results["Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
         daily_results = daily_results.set_index(["Field", "Date"])
 
         self.assertDictEqual(
@@ -734,7 +734,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
         daily_results = intraday_to_daily(intraday_results)
 
         daily_results = daily_results.reset_index()
-        daily_results.loc[:, "Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
+        daily_results["Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
         daily_results = daily_results.set_index(["Field", "Date"])
 
         daily_results = daily_results.where(daily_results.notnull(), None)
@@ -816,7 +816,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
         daily_results = intraday_to_daily(intraday_results)
 
         daily_results = daily_results.reset_index()
-        daily_results.loc[:, "Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
+        daily_results["Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
         daily_results = daily_results.set_index(["Field", "Date"])
 
         self.maxDiff = None
@@ -863,7 +863,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
         daily_results = intraday_to_daily(intraday_results)
 
         daily_results = daily_results.reset_index()
-        daily_results.loc[:, "Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
+        daily_results["Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
         daily_results = daily_results.set_index(["Field", "Date"])
 
         daily_results = daily_results.where(daily_results.notnull(), None)
@@ -963,7 +963,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
                                           })
 
         daily_results = daily_results.reset_index()
-        daily_results.loc[:, "Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
+        daily_results["Date"] = daily_results.Date.dt.strftime("%Y-%m-%d")
         daily_results = daily_results.set_index(["Field", "Date"])
 
         daily_results = daily_results.where(daily_results.notnull(), None)

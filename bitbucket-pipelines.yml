@@ -1,4 +1,4 @@
-image: python:3.9
+image: python:3.11
 
 pipelines:
     tags:
@@ -6,5 +6,5 @@ pipelines:
             - step:
                 script:
                     - pip install -U tox build twine
-                    - tox -e py39
+                    - tox -e py311
                     - ./deploy.bash
