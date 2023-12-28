@@ -768,9 +768,9 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ('Benchmark', '2018-12-05'): None}
         )
         backtest_results["strategy-2"].update(
-            {('Benchmark', '2018-12-03'): 100.10,
-            ('Benchmark', '2018-12-04'): 102.34,
-            ('Benchmark', '2018-12-05'): 102.08}
+            {('Benchmark', '2018-12-03'): 0.0,
+            ('Benchmark', '2018-12-04'): 0.022378,
+            ('Benchmark', '2018-12-05'): -0.002541}
         )
 
         backtest_results = pd.DataFrame.from_dict(backtest_results)

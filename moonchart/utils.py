@@ -492,7 +492,7 @@ def intraday_to_daily(
 
     AbsExposure: max
     AbsWeight: max
-    Benchmark: last
+    Benchmark: sum
     Commission: sum
     CommissionAmount: sum
     NetExposure: extreme
@@ -542,7 +542,7 @@ def intraday_to_daily(
     field_hows = {
         'AbsExposure': 'max',
         'AbsWeight': 'max',
-        'Benchmark': 'last',
+        'Benchmark': 'sum',
         'Commission': 'sum',
         'CommissionAmount': 'sum',
         'NetExposure': 'extreme',

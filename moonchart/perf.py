@@ -65,7 +65,7 @@ class DailyPerformance(object):
         a DataFrame of slippages, as a proportion of capital
 
     benchmark : Series, optional
-        a Series of prices for a benchmark
+        a Series of returns for a benchmark
 
     riskfree : float, optional
         the riskfree rate (default 0)
@@ -140,7 +140,7 @@ class DailyPerformance(object):
         """True for compound/geometric returns, False for arithmetic returns"""
         self.rolling_sharpe_window: int = rolling_sharpe_window
         """compute rolling Sharpe over this many periods"""
-        self._benchmark_prices = benchmark
+        self._benchmark = benchmark
         self._benchmark_returns = None
         self._benchmark_cum_returns = None
         self._cum_returns = None
@@ -439,16 +439,16 @@ class DailyPerformance(object):
     def benchmark_returns(self) -> 'pd.Series[float]':
         """
         Returns a Series of benchmark returns from the DataFrame of benchmark
-        prices, if any. If more than one strategy/column has benchmark
-        prices, uses the first to compute returns.
+        returns, if any. If more than one strategy/column has benchmark
+        returns, uses the first.
         """
         if self._benchmark_returns is not None:
             return self._benchmark_returns
 
-        if self._benchmark_prices is None:
+        if self._benchmark is None:
             return None
 
-        have_benchmarks = self._benchmark_prices.notnull().any(axis=0)
+        have_benchmarks = (self._benchmark.fillna(0) != 0).any(axis=0)
         have_benchmarks = have_benchmarks[have_benchmarks]
         if have_benchmarks.empty:
             return None
@@ -458,9 +458,7 @@ class DailyPerformance(object):
             import warnings
             warnings.warn("Multiple benchmarks found, only using first ({0})".format(col))
 
-        benchmark_prices = self._benchmark_prices[col]
-
-        self._benchmark_returns = benchmark_prices.pct_change().fillna(0)
+        self._benchmark_returns = self._benchmark[col]
         self._benchmark_returns.name = "benchmark"
 
         return self._benchmark_returns
@@ -538,7 +536,7 @@ class AggregateDailyPerformance(DailyPerformance):
             riskfree=riskfree,
             compound=compound,
             rolling_sharpe_window=rolling_sharpe_window,
-            benchmark=performance._benchmark_prices,
+            benchmark=performance._benchmark,
             trim_outliers=trim_outliers
         )
         if performance.pnl is not None:
