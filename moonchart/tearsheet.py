@@ -325,9 +325,13 @@ class Tearsheet(BaseTearsheet):
         stats.append([
             "Max Drawdown",
             "{0}%".format(round(agg_performance.max_drawdown * 100, 1))])
+        if agg_performance.compound:
+            cum_return = ep.cum_returns_final(agg_performance.returns)
+        else:
+            cum_return = agg_performance.returns.sum()
         stats.append([
             "Cumulative Return",
-            "{0}%".format(round(ep.cum_returns_final(agg_performance.returns) * 100, 1))])
+        "{0}%".format(round(cum_return * 100, 1))])
         stats.append([
             "Annual Volatility",
             "{0}%".format(round(ep.annual_volatility(agg_performance.returns) * 100, 1))])
