@@ -2,3 +2,5 @@
 *.pyc
 .tox/
 /build/
+versioneer.py
+moonchart/_version.py
