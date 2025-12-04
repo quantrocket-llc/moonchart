@@ -432,7 +432,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertDictEqual(
             perf.abs_exposures.to_dict(orient="list"),
-            {'strategy-a': [0.01, 0.0, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
+            {'strategy-a': [0.01, 0.01, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
 
         self.assertListEqual(
             list(perf.net_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -440,7 +440,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertDictEqual(
             perf.net_exposures.to_dict(orient="list"),
-            {'strategy-a': [-0.01, 0.0, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
+            {'strategy-a': [-0.01, -0.01, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
 
         self.assertListEqual(
             list(perf.turnover.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -456,7 +456,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertDictEqual(
             perf.total_holdings.to_dict(orient="list"),
-            {'strategy-a': [26.0, 25.0, 25.0], 'strategy-b': [15.0, 20.0, 22.0]})
+            {'strategy-a': [26.0, 26.0, 25.0], 'strategy-b': [15.0, 20.0, 22.0]})
 
         self.assertListEqual(
             list(perf.pnl.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -551,7 +551,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             agg_perf.abs_exposures.tolist(),
-            [0.01, 0.0, 0.0])
+            [0.01, 0.01, 0.0])
 
         self.assertListEqual(
             list(agg_perf.net_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -559,7 +559,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             agg_perf.net_exposures.tolist(),
-            [-0.01, 0.0, 0.0])
+            [-0.01, -0.01, 0.0])
 
         self.assertListEqual(
             list(agg_perf.turnover.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -575,7 +575,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertListEqual(
             agg_perf.total_holdings.tolist(),
-            [41.0, 45.0, 47.0])
+            [41.0, 46.0, 47.0])
 
         self.assertListEqual(
             list(agg_perf.pnl.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -663,7 +663,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertDictEqual(
             perf.abs_exposures.to_dict(orient="list"),
-            {'strategy-a': [0.01, 0.0, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
+            {'strategy-a': [0.01, 0.01, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
 
         self.assertListEqual(
             list(perf.net_exposures.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -671,7 +671,7 @@ class DailyPerformanceTestCase(unittest.TestCase):
 
         self.assertDictEqual(
             perf.net_exposures.to_dict(orient="list"),
-            {'strategy-a': [-0.01, 0.0, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
+            {'strategy-a': [-0.01, -0.01, 0.0], 'strategy-b': [0.0, 0.0, 0.0]})
 
         self.assertListEqual(
             list(perf.turnover.index.strftime("%Y-%m-%d %H:%M:%S")),
@@ -686,8 +686,8 @@ class DailyPerformanceTestCase(unittest.TestCase):
             ['2019-01-21 00:00:00', '2019-01-22 00:00:00', '2019-01-23 00:00:00'])
 
         self.assertDictEqual(
-            perf.total_holdings.to_dict(orient="list"),
-            {'strategy-a': [25.5, 25.0, 25.0], 'strategy-b': [15.0, 20.0, 22.0]})
+            round_results(perf.total_holdings.to_dict(orient="list")),
+            {'strategy-a': [17.0, 25.333333, 25.0], 'strategy-b': [10.0, 16.666667, 21.0]})
 
     def test_riskfree(self):
 

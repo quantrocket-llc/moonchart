@@ -472,6 +472,36 @@ def get_top_movers(returns, n=10):
 
     return top_movers
 
+def _add_missing_dates(s):
+    """
+    Ensure that the MultiIndex includes an entry for every business date at 00:00:00.
+
+    Expects a Series or DataFrame indexed by a two-level MultiIndex where:
+      • Level 0 is a normalized datetime (date only).
+      • Level 1 is a time string in "HH:MM:SS" format.
+
+    The function determines the full continuous date range between the
+    minimum and maximum dates present, constructs a corresponding set of
+    (date, "00:00:00") index entries, unions them with the existing index,
+    and reindexes `s` to include these rows. Any newly added rows contain NaN
+    values and can be filled by the caller.
+    """
+    dates = s.index.get_level_values(0)
+    full_dates = pd.date_range(dates.min(), dates.max(), freq="B")
+
+    # Construct the missing midnight rows
+    midnight_idx = pd.MultiIndex.from_product(
+        [full_dates, ["00:00:00"]],
+        names=s.index.names
+    )
+
+    # Union with existing index
+    new_index = s.index.union(midnight_idx)
+
+    # Reindex (new midnight rows will appear with NaN values)
+    s = s.reindex(new_index)
+    return s
+
 def intraday_to_daily(
     results: pd.DataFrame,
     how: dict[str, str] = None
@@ -568,6 +598,30 @@ def intraday_to_daily(
         field_how = field_hows[field]
 
         field_results = results.loc[field].astype(np.float64)
+
+        # for position/exposure, ensure all dates are present,
+        # then forward fill values before aggregating. If we don't do this, and
+        # the strategy traded on day n-1 and n+1 but not n, it won't be clear in the
+        # resulting daily_results whether the missing day n had holdings or not.
+        # Tear sheets will connect the non-missing days and thus treat the missing day
+        # as if it did have holdings.
+        if field in (
+            "AbsExposure",
+            "AbsWeight",
+            "NetExposure",
+            "PositionQuantity",
+            "PositionValue",
+            "TotalHoldings",
+            "Turnover",
+            "Weight",
+            ):
+            field_results = _add_missing_dates(field_results)
+            # weights should be forward filled (you're still holding the position),
+            # but Turnover should be filled with 0 (no trading that day)
+            if field != "Turnover":
+                field_results = field_results.ffill()
+            field_results = field_results.fillna(0)
+
         grouped = field_results.groupby(field_results.index.get_level_values("Date"))
 
         if field_how == "extreme":

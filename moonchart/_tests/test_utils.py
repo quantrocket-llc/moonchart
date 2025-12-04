@@ -983,7 +983,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
                 ('CommissionAmount', '2019-06-24'): 139.9264,
                 ('CommissionAmount', '2019-06-25'): 0.0,
                 # mean
-                ('NetExposure', '2019-06-24'): -0.016621,
+                ('NetExposure', '2019-06-24'): -0.014774,
                 ('NetExposure', '2019-06-25'): 0.0,
                 # mean
                 ('NetLiquidation', '2019-06-24'): 717059.21,
@@ -1020,7 +1020,7 @@ class IntradayToDailyTestCase(unittest.TestCase):
                  ('CommissionAmount', '2019-06-24'): 3.2639,
                  ('CommissionAmount', '2019-06-25'): 0.0,
                  # mean
-                 ('NetExposure', '2019-06-24'): -0.012399,
+                 ('NetExposure', '2019-06-24'): -0.011022,
                  ('NetExposure', '2019-06-25'): 0.0,
                  # mean
                  ('NetLiquidation', '2019-06-24'): 717059.21,
