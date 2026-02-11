@@ -219,7 +219,7 @@ class ParamscanTearsheet(BaseTearsheet):
 
         summary = results.drop("AggReturn", level="Field")
         summary.index = summary.index.set_names([None, "Strategy"])
-        summary = summary.T.stack(level="Strategy")
+        summary = summary.T.stack(level="Strategy", future_stack=True)
         summary = summary.round(2)
         summary["TotalHoldings"] = summary["TotalHoldings"].round().astype(int)
         for field in ("Cagr", "MaxDrawdown", "AbsExposure", "NormalizedCagr"):

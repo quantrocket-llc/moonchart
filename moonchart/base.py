@@ -49,7 +49,7 @@ class BaseTearsheet(object):
         self.figsize = figsize or (16.0, 12.0) # width, height in inches
         plt.rc("axes", axisbelow=True)
         if pdf_filename:
-            self._pdf = PdfPages(pdf_filename, keep_empty=True)
+            self._pdf = PdfPages(pdf_filename)
         else:
             self._pdf = None
 
